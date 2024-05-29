@@ -14,11 +14,28 @@
 ## INPUT raw_data bfile
 ## OUTPUT data_QCd PCA 
 
-. ./config
+source ./config
 
-## Sample Duplication QC
+# Sample Duplication QC
 cd "${PROCESSDIR}" || exit
 mkdir -p QCoutput
+
+# PCA
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --indep 50 5 1.5 --out ${RAWDATADIR}/${FILEPREFIX}.ld
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --extract ${RAWDATADIR}/${FILEPREFIX}.ld.prune.in --make-bed --out ${RAWDATADIR}/${FILEPREFIX}.ld.prune
+
+mkdir -p GCTAforPCA
+
+${GCTA}/gcta-1.94.1 --bfile ${RAWDATADIR}/${FILEPREFIX}.ld.prune --make-grm-bin --autosome --out GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc
+${GCTA}/gcta-1.94.1 --grm GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc --pca --out GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc.pca
+
+rm ${RAWDATADIR}/${FILEPREFIX}.ld.prune.b* ${RAWDATADIR}/${FILEPREFIX}.ld.prune.fam
+
+# plot PCs to identify outliers
+Rscript ${SCRIPTDIR}/4_Resources/plotPCs.r GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc.pca.eigenvec 3
+mv ScatterplotPCs.pdf ${SCRIPTDIR}/3_Results/ScatterplotPCsRawData.pdf
+mv OutliersFromPC_3SDfromMean.txt ${SCRIPTDIR}/3_Results/OutliersFromPC_3SDfromMeanRawData.txt
+
 
 # identify duplicates or MZ twins.
 "$KINGPATH"/king -b "${RAWDATADIR}"/"${FILEPREFIX}".bed --duplicate --prefix QCoutput/king

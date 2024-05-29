@@ -6,8 +6,8 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/ImputationFormatSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/ImputationFormatSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/ImputationFormatSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/ImputationFormatSanger.e
 #SBATCH --job-name=IFS
 
 
@@ -15,7 +15,7 @@
 ## format files for use with Sanger Imputation Server
 
 ## EXECUTION
-# sh SNPArray/preprocessing/4_formatForimputation.sh <population> <SNP ref file>
+# sh SNPArray/preprocessing/4_formatForimputation.sh <population> 
 # where 
 # <population > is 3 letter code for super population state ALL for no subsetting by population
 # <SNP ref file> is an input file of 
@@ -46,46 +46,49 @@ echo 'runing 4_formatForImputation.sh'
 
 module purge
 module load VCFtools
+module load BCFtools
 # sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh ALL ${KGG}/1000GP_Phase3_combined.legend
 # sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh EUR ${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
 
 
+population=$1
 
-population=EUR
-refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
+if [ $population == "EUR" ]; 
+  then refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
+elif [ $population == "ALL" ];
+  then
+  refFile=${KGG}/1000GP_Phase3_combined.legend
+fi
+
 
 cd ${IMPUTEDIR}/ || exit 
 
-mkdir -p ImputationInput
+mkdir -p ImputationInputSanger
 
-cd ImputationInput
+cd ImputationInputSanger
 
 mkdir -p ${population}
 
-cd ${population}/ || exit
+cd ${population}/ || exit 
 
-mkdir Sanger
-cd Sanger/ || exit
+
 
 ## use tool to check data prior to upload https://www.well.ox.ac.uk/~wrayner/tools/
 ## subset samples
-${PLINK}/plink --bfile ${PROCESSDIR}/${FILEPREFIX}_QCd --keep ${PROCESSDIR}/${population}Samples.txt --maf 0.05 --out ${FILEPREFIX}_QCd_${population} --make-bed
-
+if [ $population == "EUR" ]
+  then
+  ${PLINK}/plink --bfile ${PROCESSDIR}/${FILEPREFIX}_QCd --keep ${PROCESSDIR}/${population}Samples.txt --maf 0.05 --out ${FILEPREFIX}_QCd_${population} --make-bed
+elif [ $population == "ALL" ]
+  then
+    cp ${PROCESSDIR}/${FILEPREFIX}_QCd.bim ${FILEPREFIX}_QCd_${population}.bim
+  	cp ${PROCESSDIR}/${FILEPREFIX}_QCd.bed ${FILEPREFIX}_QCd_${population}.bed
+  	cp ${PROCESSDIR}/${FILEPREFIX}_QCd.fam ${FILEPREFIX}_QCd_${population}.fam
+else
+  echo "Please input either EUR or ALL as the first arg!"
+  exit 1
+fi
 
 ## liftover to hg19 for imputation
-# convert the hg18.bim file into hg18.BED file
-cd ${PROCESSDIR} || exit
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd.bim > hg17.BED
-# wget https://hgdownload.soe.ucsc.edu/goldenPath/hg17/liftOver/hg17ToHg19.over.chain.gz
-${LIFTOVER} hg17.BED hg17ToHg19.over.chain.gz Hg19.BED unMappedHg19
-
-# check if you have althernative chr
-awk '{print $1}' Hg19.BED | sort -u
-awk '{OFS="\t"; print substr($1,4), $4, 0, $3}' Hg19.BED > Hg19.bim
-awk '{OFS="\t"; print $4, $3}' Hg19.BED > Hg19build.txt
-
-
-cd ${IMPUTEDIR}/ImputationInput/${population}/Sanger
 ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} --update-map ${PROCESSDIR}/Hg19build.txt --make-bed --out ${FILEPREFIX}_QCd_${population}_hg19
 
 
@@ -113,13 +116,27 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} --update-map ${PROCESSDIR
 
 ## for HRC check tool need freq file
 ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 --freq --out ${FILEPREFIX}_QCd_hg19_freq
-perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_hg19_freq.frq -r ${refFile} -g --hrc
 
 
+if [[ $(basename ${refFile}) == HRC* ]] ;
+  then
+  perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_hg19_freq.frq -r ${refFile} -g --hrc
+else
+  perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_hg19_freq.frq -r ${refFile} -g --1000g
+fi
+
+
+# the ${PLINK}/plink is the version of 1.9
 sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
+sed -i '/--real-ref-alleles/d' Run-plink.sh
 sh Run-plink.sh
+${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated --real-ref-alleles --make-bed --out ${FILEPREFIX}_QCd_${population}_hg19-updated
+${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated --real-ref-alleles --recode vcf --out ${FILEPREFIX}_QCd_${population}_hg19-updated
 
-for file in *.vcf; do vcf-sort ${file} | bgzip -c > ${file}.gz;done
-rm *.vcf
-rm ${FILEPREFIX}_QCd*.*[^gz]
-echo 'done 4_formatForImputation.sh'
+
+# bgzip -c ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf > ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf.gz
+# bcftools index ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf.gz
+
+bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf -Oz -o ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf.gz
+
+echo 'done 4_formatForImputationSanger.sh'
