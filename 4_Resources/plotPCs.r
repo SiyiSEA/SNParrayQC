@@ -10,7 +10,10 @@ impute<-read.table(filename)
 pcMu<-colMeans(impute[,-c(1:2)])
 pcSigma<-apply(impute[,-c(1:2)], 2, sd)
 
-pdf("ScatterplotPCs.pdf", width = 12, height = 4)
+
+outname<-unlist(strsplit(filename, "[.]"))[[1]]
+
+pdf(paste0(outname,"_ScatterplotPCs.pdf"), width = 12, height = 4)
 par(mfrow = c(1,3))
 par(mar = c(4,4,1,1))
 plot(impute[,3],impute[,4], pch= 16, xlab = "PC1", ylab = "PC2")
@@ -42,4 +45,4 @@ for(i in 3:22){
   }
 }
 
-write.table(outliers, paste("OutliersFromPC_",nSD,"SDfromMean.txt", sep = ""), quote = FALSE, sep = " ")
+write.table(outliers, paste(outname, "_OutliersFromPC_",nSD,"SDfromMean.txt", sep = ""), quote = FALSE, sep = " ")
