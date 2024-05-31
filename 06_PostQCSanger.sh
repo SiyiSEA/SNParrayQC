@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=100G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/PostQCSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/PostQCSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCSanger.e
 #SBATCH --job-name=PostQCSanger
 
 
@@ -96,7 +96,7 @@ do
 	# Keep SNPs with MAF>0.01 or info>0.4
 	# MAF ref:Performance of Genotype Imputation for Low Frequency and Rare Variants from the 1000 Genomes
 	${PLINK2} --pfile data_chr${i}_dose \
-			  --extract-if-info "INFO>0.4" \
+			  --extract-if-info "INFO>0.8" \
 			  --maf 0.01 \
 			  --make-pgen \
 		      --out data_chr${i}_filtered_temp2 \
@@ -186,7 +186,7 @@ do
 done
 
 # clean up redundant files
-rm data_filtered_Sanger_temp* data_chr*_dose_temp0
+rm data_filtered_Sanger_temp*
 rm data_chr*temp* 
 rm data_chr*_filtered_Sanger.info data_filtered_Sanger.fam.orig
 rm oldidchrX.txt newidchr23.txt updatechrid.txt

@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/PostQCMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/PostQCMichigan.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCMichigan.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCMichigan.e
 #SBATCH --job-name=PostQCMichigan
 
 

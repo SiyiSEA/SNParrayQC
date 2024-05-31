@@ -6,8 +6,8 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/05a_downloadMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/05a_downloadMichigan.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05a_downloadMichigan.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05a_downloadMichigan.e
 #SBATCH --job-name=downloadMichigan
 
 source ./config

@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=250G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/AssembleData.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/AssembleData.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/AssembleData.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/AssembleData.e
 #SBATCH --job-name=AssembleData
 
 
@@ -36,7 +36,7 @@
 
 
 source ./config
-echo 'runing 06_AssembleData.sh'
+echo 'runing 07_AssembleData.sh'
 
 
 echo "Assemble QCd data----------------------------------------------"
@@ -128,10 +128,11 @@ assemble_imputed_postQC_data () {
 }
 
 # pass
-# assemble_imputed_postQC_data Michigan HRC
+# # assemble_imputed_postQC_data Michigan HRC
 # assemble_imputed_postQC_data Sanger HRC
-# assemble_imputed_postQC_data Michigan 1000G
+# # assemble_imputed_postQC_data Michigan 1000G
 # assemble_imputed_postQC_data Sanger 1000G
+
 echo "Plotting filtered data------------------------------------------"
 
 plot_imputed_postQC_data () {
@@ -148,8 +149,8 @@ plot_imputed_postQC_data () {
 
 }
 
-plot_imputed_postQC_data HRC 
-plot_imputed_postQC_data 1000G
+# plot_imputed_postQC_data HRC 
+# plot_imputed_postQC_data 1000G
 
 
 
@@ -172,9 +173,9 @@ hew_filter_variant () {
 	done
 }
 
-# hew_filter_variant Michigan HRC
+# # hew_filter_variant Michigan HRC
 # hew_filter_variant Sanger HRC
-# hew_filter_variant Michigan 1000G
+# # hew_filter_variant Michigan 1000G
 # hew_filter_variant Sanger 1000G
 
 echo "PCA and count variants------------------------------------------"
@@ -204,11 +205,11 @@ PCA_count_variant () {
 }
 
 
-# cd ${SCRIPTDIR}/3_Results || exit
-# mkdir -p PCAVariants
-# cd PCAVariants || exit
-# rm -f VariantsCount.txt
-# touch VariantsCount.txt
+cd ${SCRIPTDIR}/3_Results || exit
+mkdir -p PCAVariants
+cd PCAVariants || exit
+rm -f VariantsCount.txt
+touch VariantsCount.txt
 
 # works takes an hour
 # PCA_count_variant ${RAWDATADIR} ${FILEPREFIX}
@@ -218,9 +219,9 @@ PCA_count_variant () {
 # PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataSanger1000G data_dose_1000G_Sanger
 # PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataMichigan1000G data_dose_1000G_Michigan
 # PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataMichigan1000G data_filtered_1000G_Michigan
-# PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSanger1000G data_filtered_1000G_Sanger
+PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSanger1000G data_filtered_1000G_Sanger
 # PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataMichiganHRC data_filtered_HRC_Michigan
-# PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSangerHRC data_filtered_HRC_Sanger
+PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSangerHRC data_filtered_HRC_Sanger
 
 # PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Michigan_4
 # PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Michigan_3
@@ -230,3 +231,9 @@ PCA_count_variant () {
 # PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Michigan_3
 # PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Sanger_4
 # PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Sanger_3
+
+PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Sanger_4
+PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Sanger_5
+
+PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Sanger_4
+PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Sanger_5
