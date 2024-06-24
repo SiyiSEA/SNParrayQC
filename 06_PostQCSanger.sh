@@ -46,7 +46,7 @@ if [ -z "$1" ];
 then
         echo "No argument supplied"
         echo "Please input the argument either 1000G nor HRC"
-		exit
+		exit 1
 else
 		mkdir -p ImputationOutputSanger${panel} || exit
 		cd ImputationOutputSanger${panel} || exit
@@ -93,11 +93,12 @@ do
 			  --set-all-var-ids @:#_\$1_\$2 \
 			  --new-id-max-allele-len 700 # because the indel, only 1000G has
 
-	# Keep SNPs with MAF>0.01 or info>0.4
+	# Keep SNPs with MAF>0.01, info>0.8 and hwe 1e-05
 	# MAF ref:Performance of Genotype Imputation for Low Frequency and Rare Variants from the 1000 Genomes
 	${PLINK2} --pfile data_chr${i}_dose \
 			  --extract-if-info "INFO>0.8" \
 			  --maf 0.01 \
+			  --hwe 1e-5 \
 			  --make-pgen \
 		      --out data_chr${i}_filtered_temp2 \
 			  --keep-allele-order
@@ -109,7 +110,6 @@ do
 			--make-pgen \
 			--out data_chr${i}_filtered \
 			--keep-allele-order
-
 
 
 	# Convert `pvar/pgen/psam` to `bim/bed/fam` format
