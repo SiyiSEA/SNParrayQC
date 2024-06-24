@@ -45,4 +45,5 @@ for(i in 3:22){
   }
 }
 
+colnames(outliers) = c("FID", "IID", "nPC")
 write.table(outliers, paste(outname, "_OutliersFromPC_",nSD,"SDfromMean.txt", sep = ""), quote = FALSE, sep = " ")
