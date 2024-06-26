@@ -37,6 +37,5 @@ PCAforPlinkData () {
     echo "There are" ${nOutlierPC2} "outliers for " ${prefix} " on PC2."
 
     rm ${RESULTSDIR}/PCAVariants/${prefix}.ld* ${RESULTSDIR}/PCAVariants/${prefix}.imqc*
-    rm ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune.b* ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune.fam
 
 }

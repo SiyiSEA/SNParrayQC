@@ -86,7 +86,7 @@ ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --maf 0.35 --geno 0.05 --mind
 ${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --indep 50 5 1.5 --out ${FILEPREFIX}_update_2.ld
 
 # calculate the heterozygosity rate - hetF out of range of mean-3SD and mean+3SD
-${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --extract ${FILEPREFIX}_update_2.ld.prune.in --het --out ${PROCESSDIR}/QCData/hetGenotypes
+${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --extract ${FILEPREFIX}_update_2.ld.prune.in --het --autosome --out ${PROCESSDIR}/QCData/hetGenotypes
 
 # elevated missing data rates - missingF > 0.01
 ${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --missing --out ${PROCESSDIR}/QCData/missingGenotypes
@@ -137,5 +137,5 @@ echo "PCA the QCd data----------------------------------------------------------
 PCAforPlinkData ${FILEPREFIX}_QCd ${FILEPREFIX}_QCd 2
 
 # ## clean up intermediate files but keep log files
-Rscript ${RESOURCEDIR}/QCreport01.rmd
+Rscript ${RESOURCEDIR}/QCreport01.r
 rm ${FILEPREFIX}_update_*.*
