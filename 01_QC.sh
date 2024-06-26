@@ -131,12 +131,11 @@ echo "Filter on SNP-level: MAF--------------------------------------------------
 ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --freq --out rawVariantFreq
 
 ## filter sample and variant missingness, HWE, rare variants and exclude variants with no position
-${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --maf 0.01 --hwe 0.000001 --mind 0.02 --geno 0.05 --make-bed --out ${FILEPREFIX}_QCd
+${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --maf 0.01 --hwe 0.000001 --mind 0.02 --geno 0.05 --make-bed --out ${RESULTSDIR}/01/${FILEPREFIX}_QCd
 
 echo "PCA the QCd data---------------------------------------------------------------------------"
 PCAforPlinkData ${FILEPREFIX}_QCd ${FILEPREFIX}_QCd 2
 
 # ## clean up intermediate files but keep log files
 Rscript ${RESOURCEDIR}/QCreport01.rmd
-rm ${FILEPREFIX}_update_*.b*
-rm ${FILEPREFIX}_update_*.fam
+rm ${FILEPREFIX}_update_*.*
