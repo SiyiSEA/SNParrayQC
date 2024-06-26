@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ## DESCRIPTIONS
 #This script takes genotype data outputted by genome studio and performs data QC
@@ -15,136 +15,128 @@
 ## OUTPUT data_QCd PCA 
 
 source ./config
+source ${RESOURCEDIR}/PCAforPlinkData.sh
+touch "$logfile_01"
+exec > >(tee "$logfile_01") 2>&1
+cd ${PROCESSDIR}/QCData || exit
 
-# Sample Duplication QC
-cd "${PROCESSDIR}" || exit
-mkdir -p QCoutput
+echo "PCA the raw data---------------------------------------------------------------------------"
+# PCA the raw data -- pass
+PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
-# PCA
-${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --indep 50 5 1.5 --out ${RAWDATADIR}/${FILEPREFIX}.ld
-${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --extract ${RAWDATADIR}/${FILEPREFIX}.ld.prune.in --make-bed --out ${RAWDATADIR}/${FILEPREFIX}.ld.prune
+echo "Filter on Sample-level: Chech the relatedness and duplications-----------------------------------------------------"
+Method -1: identify duplication or related individuals or monozygotic twins
+"$KINGPATH"/king \
+    -b "${RAWDATADIR}"/"${FILEPREFIX}".bed \
+    --related \
+    --degree 2 \
+    --prefix ${PROCESSDIR}/QCData/related
 
-mkdir -p GCTAforPCA
-
-${GCTA}/gcta-1.94.1 --bfile ${RAWDATADIR}/${FILEPREFIX}.ld.prune --make-grm-bin --autosome --out GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc
-${GCTA}/gcta-1.94.1 --grm GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc --pca --out GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc.pca
-
-rm ${RAWDATADIR}/${FILEPREFIX}.ld.prune.b* ${RAWDATADIR}/${FILEPREFIX}.ld.prune.fam
-
-# plot PCs to identify outliers
-Rscript ${SCRIPTDIR}/4_Resources/plotPCs.r GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc.pca.eigenvec 3
-mv ScatterplotPCs.pdf ${SCRIPTDIR}/3_Results/ScatterplotPCsRawData.pdf
-mv OutliersFromPC_3SDfromMean.txt ${SCRIPTDIR}/3_Results/OutliersFromPC_3SDfromMeanRawData.txt
-
-
-# identify duplicates or MZ twins.
-"$KINGPATH"/king -b "${RAWDATADIR}"/"${FILEPREFIX}".bed --duplicate --prefix QCoutput/king
-
-
-if [ -s QCoutput/king.con ]
-then 
-
-    cut -f 1,2 QCoutput/king.con > QCoutput/duplicateSamples.tmp
-    cut -f 3,4 QCoutput/king.con >> QCoutput/duplicateSamples.tmp
-    sort QCoutput/duplicateSamples.tmp | uniq > QCoutput/duplicateSamples.txt
-    rm QCoutput/duplicateSamples.tmp
-
-    if [ -s QCoutput/duplicateSamples.txt ]
+if [ -s ${PROCESSDIR}/QCData/related.kin ]
+then
+    awk '{if ($15 == "Dup/MZTwin") print $1, $4}' ${PROCESSDIR}/QCData/related.kin > ${PROCESSDIR}/QCData/duplicationSample.tmp
+    num_dup=$(wc -l ${PROCESSDIR}/QCData/duplicationSample.tmp)
+    if [ $num_dup -gt 1  ]
     then
-    
-    ## elevated missing data rate
-    ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out duplicateSamples
-
-	## use python script to identify duplicated with greatest missingness
-	python ${SCRIPTDIR}/utilitys/ExcludeDuplicates.py QCoutput/king.con duplicateSamples.imiss QCoutput/dupsToExclude.txt
-
-	## remove duplicates
-	${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --remove QCoutput/dupsToExclude.txt --make-bed --out ${FILEPREFIX}_update_1
+        echo "There are " $num_dup "sample(s) is/are related."
+        ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out ${PROCESSDIR}/QCData/MissingDuplicateSamples
+        python ${SCRIPTDIR}/utilitys/ExcludeDuplicates.py${PROCESSDIR}/QCData/related.kin MissingDuplicateSamples.imiss ${PROCESSDIR}/QCData/dupsToExclude.txt
+        ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --remove ${PROCESSDIR}/QCData/dupsToExclude.txt --make-bed --out ${PROCESSDIR}/QCData/${FILEPREFIX}_update_1
     fi
-
 else
+    echo "No duplication or related individuals."
     cp ${RAWDATADIR}/${FILEPREFIX}.bed ${FILEPREFIX}_update_1.bed
     cp ${RAWDATADIR}/${FILEPREFIX}.bim ${FILEPREFIX}_update_1.bim
     cp ${RAWDATADIR}/${FILEPREFIX}.fam ${FILEPREFIX}_update_1.fam
-
 fi
 
+# Method -2: identify duplicates or MZ twins.
+# "$KINGPATH"/king -b "${RAWDATADIR}"/"${FILEPREFIX}".bed --duplicate --prefix ${PROCESSDIR}/QCData/duplication
+# if [ -s QCoutput/king.con ]
+# then 
 
-## Variants Duplication QC - remove variants at the same position (i.e. triallelic)
-awk '{if ($1 != 0) print $1":"$4}' ${FILEPREFIX}_update_1.bim > QCoutput/pos.tmp
-sort QCoutput/pos.tmp | uniq -d > QCoutput/dupLocs.txt
+#     cut -f 1,2 QCoutput/king.con > QCoutput/duplicateSamples.tmp
+#     cut -f 3,4 QCoutput/king.con >> QCoutput/duplicateSamples.tmp
+#     sort QCoutput/duplicateSamples.tmp | uniq > QCoutput/duplicateSamples.txt
+#     rm QCoutput/duplicateSamples.tmp
 
-awk -F ":" '{print $1,$2-1,$2,"set1", "set2"}' QCoutput/dupLocs.txt > QCoutput/positionsExclude.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_1 --exclude range QCoutput/positionsExclude.txt --make-bed --out ${FILEPREFIX}_update_2
+#     if [ -s QCoutput/duplicateSamples.txt ]
+#     then
+    
+#     ## elevated missing data rate
+#     ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out duplicateSamples
 
-rm QCoutput/pos.tmp
-rm QCoutput/dupLocs.txt
+# 	## use python script to identify duplicated with greatest missingness
+# 	python ${SCRIPTDIR}/utilitys/ExcludeDuplicates.py QCoutput/king.con duplicateSamples.imiss QCoutput/dupsToExclude.txt
+
+# 	## remove duplicates
+# 	${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --remove QCoutput/dupsToExclude.txt --make-bed --out ${FILEPREFIX}_update_1
+#     fi
+
+# else
+#     cp ${RAWDATADIR}/${FILEPREFIX}.bed ${FILEPREFIX}_update_1.bed
+#     cp ${RAWDATADIR}/${FILEPREFIX}.bim ${FILEPREFIX}_update_1.bim
+#     cp ${RAWDATADIR}/${FILEPREFIX}.fam ${FILEPREFIX}_update_1.fam
+
+# fi
+
+echo "Filter on Sample-level: heterozygosity, missing rate and gender check-----------------------------------------------------"
+# inital filter on SNP
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --maf 0.35 --geno 0.05 --mind 0.02 --hwe 0.00001 --make-bed --out ${FILEPREFIX}_update_2
+${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --indep 50 5 1.5 --out ${FILEPREFIX}_update_2.ld
+
+# calculate the heterozygosity rate - hetF out of range of mean-3SD and mean+3SD
+${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --extract ${FILEPREFIX}_update_2.ld.prune.in --het --out ${PROCESSDIR}/QCData/hetGenotypes
+
+# elevated missing data rates - missingF > 0.01
+${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --missing --out ${PROCESSDIR}/QCData/missingGenotypes
+
+# gender check - sex error
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --extract ${RESULTSDIR}/PCAVariants/${FILEPREFIX}.ld.prune.in --check-sex --out ${PROCESSDIR}/QCData/SexCheck
+num_sex_error=$(cat ${PROCESSDIR}/QCData/SexCheck.sexcheck | grep PROBLEM | wc -l)
+echo "There are " $num_sex_error " sample(s) needed to be removed due the sex error."
+
+# generate a list of sample fail on above checking
+Rscript ${RESOURCEDIR}/list_failqc.r
+${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --remove ${PROCESSDIR}/QCData/fail_mis_het_sex.txt --make-bed --out ${FILEPREFIX}_update_3
 
 
-## exclude samples which do not have sex predicted
-## exclude mismatched samples
-## retain samples with missing sex info
-${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --mind 0.02 --check-sex --out QCoutput/SexCheck
-awk '{if ($4 == 0) print $1,$2 }' QCoutput/SexCheck.sexcheck > QCoutput/sexErrors.txt
-awk '{if ($4 != $3 && $3 != 0) print $1,$2 }' QCoutput/SexCheck.sexcheck >> QCoutput/sexErrors.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --remove QCoutput/sexErrors.txt --make-bed --out ${FILEPREFIX}_update_3
+echo "Filter on SNP-level: duplication variants-----------------------------------------------------"
+# method-1
+${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --list-duplicate-vars ids-only suppress-first --out ${FILEPREFIX}_update_3
+num_dup_var=$(wc -l ${FILEPREFIX}_update_3.dupvar)
+echo "There are " $num_dup_var " variant(s) are duplicated."
+${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --exclude ${FILEPREFIX}_update_3.dupvar --make-bed --out ${FILEPREFIX}_update_4
+
+# # method-2
+# ## Variants Duplication QC - remove variants at the same position (i.e. triallelic)
+# awk '{if ($1 != 0) print $1":"$4}' ${FILEPREFIX}_update_3.bim > pos.tmp
+# sort pos.tmp | uniq -d > dupLocs.txt
+
+# awk -F ":" '{print $1,$2-1,$2,"set1", "set2"}' dupLocs.txt > positionsExclude.txt
+# ${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --exclude range positionsExclude.txt --make-bed --out ${FILEPREFIX}_update_4
+
+# rm QCoutput/pos.tmp
+# rm QCoutput/dupLocs.txt
 
 
-
-## Sample Heterozygosity and missing genetype call rate QC (only for autosome)
-awk '{if ($1 >= 1 && $1 <= 22) print $2}' ${FILEPREFIX}_update_3.bim > QCoutput/autosomalVariants.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --extract QCoutput/autosomalVariants.txt --missing --out missingSamples
-
-## Smpale related indiciduals (IBS, IBD calculation)
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --extract QCoutput/autosomalVariants.txt --maf 0.01 --hwe 0.00001 --mind 0.02 --geno 0.05 --indep-pairwise 5000 1000 0.2 --out ld.auto
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --extract QCoutput/ld.auto.prune.in --het --out QCoutput/roh
-
-## plot missing rate vs F rate, missing rate vs heterozygosity
-Rscript /lustre/home/sww208/GoDMC/QC/OrganizedSNParray/4_Resources/Plot_mis_het.R
-
-## exclude anyone with |Fhet| > 0.2, missing rate > 0.02
-# based on the mis_het.pdf, the --mind should be 0.02
-awk '{if ($6 > 0.2 || $6 < -0.2) print $1,$2}' roh.het > QCoutput/excessHet.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --remove QCoutput/excessHet.txt --make-bed --out ${FILEPREFIX}_update_4
-rm QCoutput/autosomalVariants.txt
-
-
-
-
-
-## Variants missing call rate QC
+echo "Filter on SNP-level: missing rate of variants-----------------------------------------------------"
+# # Variants missing call rate QC
 # previous QC step for calculating sample missing call rate - .lmiss
-# based on the mis_het.pdf, the geno threshold could be 0.05
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out rawMissing
 
-
+echo "Filter on SNP-level: MAF-----------------------------------------------------"
 ## Variants Minor allele frequencies
-# based on the mis_het.pdf, the maf threshold could be 0.02?
-${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --freq --out variant_freq
-Rscript /lustre/home/sww208/GoDMC/QC/OrganizedSNParray/4_Resources/Plot_MAF.R
+# the maf threshold could be 0.01
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --freq --out rawVariantFreq
 
 ## filter sample and variant missingness, HWE, rare variants and exclude variants with no position
-awk '{if ($1 == 0) print $2}' ${FILEPREFIX}_update_4.bim > QCoutput/noLocPos.tmp
-${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --exclude QCoutput/noLocPos.tmp --maf 0.001 --hwe 0.00001 --mind 0.02 --geno 0.05 --make-bed --out ${FILEPREFIX}_QCd
+${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --maf 0.01 --hwe 0.000001 --mind 0.02 --geno 0.05 --make-bed --out ${FILEPREFIX}_QCd
 
+echo "PCA the QCd data---------------------------------------------------------------------------"
+PCAforPlinkData ${FILEPREFIX}_QCd ${FILEPREFIX}_QCd 2
 
-
-## clean up intermediate files but keep log files
+# ## clean up intermediate files but keep log files
+Rscript ${RESOURCEDIR}/QCreport01.rmd
 rm ${FILEPREFIX}_update_*.b*
 rm ${FILEPREFIX}_update_*.fam
-
-
-## calc PCS within sample only
-# LD prune
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --indep 50 5 1.5 --out ${FILEPREFIX}_QCd.ld
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --extract ${FILEPREFIX}_QCd.ld.prune.in --make-bed --out ${FILEPREFIX}_QCd.ld.prune
-
-mkdir -p GCTA
-
-${GCTA}/gcta-1.94.1 --bfile ${FILEPREFIX}_QCd.ld.prune --make-grm-bin --autosome --out GCTA/${FILEPREFIX}_QCd_GCTA
-${GCTA}/gcta-1.94.1 --grm GCTA/${FILEPREFIX}_QCd_GCTA --pca --out GCTA/${FILEPREFIX}_QCd.pca
-
-rm ${FILEPREFIX}_QCd.ld.prune*
-
-## extract SNP probes for comparison with DNAm data
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --extract ${EPICREF}/RSprobes.txt --recodeA --out ${FILEPREFIX}_59DNAmSNPs
-
