@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+mkdir -p ${PROCESSDIR}
+mkdir -p ${METADIR}
+mkdir -p ${IMPUTEDIR}
+mkdir -p ${CNVDIR}
+
+mkdir -p ${IMPUTEDIR}/ImputationInputMichigan
+mkdir -p ${IMPUTEDIR}/ImputationInputSanger
+mkdir -p ${IMPUTEDIR}/ImputationOutputMichigan1000G
+mkdir -p ${IMPUTEDIR}/ImputationOutputMichiganHRC
+mkdir -p ${IMPUTEDIR}/ImputationOutputSanger1000G
+mkdir -p ${IMPUTEDIR}/ImputationOutputSangerHRC
+
+mkdir -p ${RESOURCEDIR}/LiftOverTools
+mkdir -p ${RESULTSDIR}/PCAVariants
