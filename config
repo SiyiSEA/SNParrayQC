@@ -1,16 +1,16 @@
+#!/usr/bin/env bash
+module load R/4.2.1-foss-2022a
 ## data paths
 export FILEPREFIX=scz_ab_eur ## filename of initial binary plink files that will be appended to all other output
-export DATADIR=/lustre/home/sww208/QC/OrganizedSNParray ## project folder
+export DATADIR=/lustre/home/sww208/QC/SNParrayQC ## project folder
 export RAWDATADIR=${DATADIR}/1_RawData # where plink files should be found
 export PROCESSDIR=${DATADIR}/2_ProcessedData
 export METADIR=${DATADIR}/2_ProcessedData/MetaData
 export IMPUTEDIR=${DATADIR}/2_ProcessedData/ImputedData
 export CNVDIR=${DATADIR}/2_ProcessedData/CNVs
-
-mkdir -p ${PROCESSDIR}
-mkdir -p ${METADIR}
-mkdir -p ${IMPUTEDIR}
-mkdir -p ${CNVDIR}
+export RESULTSDIR=${DATADIR}/3_Results
+export RESOURCEDIR=${DATADIR}/4_Resources
+export JOBSDIR=${DATADIR}/5_JobReports
 
 ## Reference data filepaths
 export KGG=/lustre/projects/Research_Project-MRC190311/references/1000G # path to plink files for 1000 genomes
@@ -26,3 +26,4 @@ export PLINK2=/lustre/home/sww208/Software/plink2
 export GCTA=/lustre/projects/Research_Project-MRC190311/software/gcta-1.94.1-linux-kernel-3-x86_64
 export LIFTOVER=/lustre/home/sww208/Software/liftOver
 
+source ${DATADIR}/4_Resources/preparation
