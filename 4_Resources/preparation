@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Create folders
 mkdir -p ${PROCESSDIR}
 mkdir -p ${METADIR}
 mkdir -p ${IMPUTEDIR}
@@ -13,4 +14,23 @@ mkdir -p ${IMPUTEDIR}/ImputationOutputSanger1000G
 mkdir -p ${IMPUTEDIR}/ImputationOutputSangerHRC
 
 mkdir -p ${RESOURCEDIR}/LiftOverTools
+
 mkdir -p ${RESULTSDIR}/PCAVariants
+mkdir -p ${RESULTSDIR}/01
+mkdir -p ${RESULTSDIR}/02
+mkdir -p ${RESULTSDIR}/03
+mkdir -p ${RESULTSDIR}/04
+mkdir -p ${RESULTSDIR}/05
+mkdir -p ${RESULTSDIR}/06
+mkdir -p ${RESULTSDIR}/07
+
+# Define the variables for log files
+logfile_01="${RESULTSDIR}/01/log01.txt"
+logfile_02="${RESULTSDIR}/02/log02.txt"
+logfile_03="${RESULTSDIR}/03/log03.txt"
+logfile_04a="${RESULTSDIR}/04/log04a.txt"
+logfile_04b="${RESULTSDIR}/04/log04b.txt"
+logfile_05a="${RESULTSDIR}/04/log05a.txt"
+logfile_05b="${RESULTSDIR}/04/log05b.txt"
+logfile_06="${RESULTSDIR}/02/log06.txt"
+logfile_07="${RESULTSDIR}/03/log07.txt"
