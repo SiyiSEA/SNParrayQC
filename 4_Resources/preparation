@@ -6,6 +6,8 @@ mkdir -p ${METADIR}
 mkdir -p ${IMPUTEDIR}
 mkdir -p ${CNVDIR}
 
+mkdir -p ${PROCESSDIR}/QCData
+
 mkdir -p ${IMPUTEDIR}/ImputationInputMichigan
 mkdir -p ${IMPUTEDIR}/ImputationInputSanger
 mkdir -p ${IMPUTEDIR}/ImputationOutputMichigan1000G
