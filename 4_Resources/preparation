@@ -7,6 +7,7 @@ mkdir -p ${IMPUTEDIR}
 mkdir -p ${CNVDIR}
 
 mkdir -p ${PROCESSDIR}/QCData
+mkdir -p ${PROCESSDIR}/CheckEthnicity
 
 mkdir -p ${IMPUTEDIR}/ImputationInputMichigan
 mkdir -p ${IMPUTEDIR}/ImputationInputSanger
@@ -16,6 +17,7 @@ mkdir -p ${IMPUTEDIR}/ImputationOutputSanger1000G
 mkdir -p ${IMPUTEDIR}/ImputationOutputSangerHRC
 
 mkdir -p ${RESOURCEDIR}/LiftOverTools
+mkdir -p ${RESOURCEDIR}/1000G
 
 mkdir -p ${RESULTSDIR}/PCAVariants
 mkdir -p ${RESULTSDIR}/01
@@ -36,3 +38,44 @@ logfile_05a="${RESULTSDIR}/04/log05a.txt"
 logfile_05b="${RESULTSDIR}/04/log05b.txt"
 logfile_06="${RESULTSDIR}/02/log06.txt"
 logfile_07="${RESULTSDIR}/03/log07.txt"
+
+# liftover files (NCBI35/hg17) - (GRCh37/hg19)
+# https://hgdownload.soe.ucsc.edu/downloads.html
+if [ ! -s  ${RESOURCEDIR}/LiftOverTools/hg17ToHg19.over.chain.gz ]
+then
+    cd ${RESOURCEDIR}/LiftOverTools || exit
+    wget https://hgdownload.soe.ucsc.edu/goldenPath/hg17/liftOver/hg17ToHg19.over.chain.gz
+fi
+
+# (NCBI36/hg18) - (GRCh38/hg38)
+if [ ! -s  ${RESOURCEDIR}/LiftOverTools/hg18ToHg38.over.chain.gz ]
+then
+    cd ${RESOURCEDIR}/LiftOverTools || exit
+    wget https://hgdownload.soe.ucsc.edu/goldenPath/hg18/liftOver/hg18ToHg38.over.chain.gz
+fi
+
+# (NCBI35/hg17) - (GRCh38/hg38)
+if [ ! -s  ${RESOURCEDIR}/LiftOverTools/hg17ToHg38.over.chain.gz ]
+then
+    cd ${RESOURCEDIR}/LiftOverTools || exit
+    wget https://hgdownload.soe.ucsc.edu/goldenPath/hg17/liftOver/hg17ToHg38.over.chain.gz
+fi
+
+# (NCBI36/hg18) - (GRCh37/hg18)
+if [ ! -s  ${RESOURCEDIR}/LiftOverTools/hg18ToHg19.over.chain.gz ]
+then
+    cd ${RESOURCEDIR}/LiftOverTools || exit
+    wget https://hgdownload.soe.ucsc.edu/goldenPath/hg18/liftOver/hg18ToHg19.over.chain.gz
+fi
+
+
+
+
+if [ ! -s  ${RESOURCEDIR}/1000G/20130606_g1k.ped ]
+then
+    cd ${RESOURCEDIR}/1000G || exit
+    wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_g1k.ped
+    wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_sample_info.txt
+    wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_sample_info.xlsx
+    wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/README_20130606_sample_info
+fi
