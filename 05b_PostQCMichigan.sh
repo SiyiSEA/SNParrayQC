@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/PostQCMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/PostQCMichigan.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCMichigan.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCMichigan.e
 #SBATCH --job-name=PostQCMichigan
 
 
@@ -107,10 +107,11 @@ do
 				  --out data_chr${i}_dose
 	fi
 
-	# Keep SNPs with MAF>0.01 or R2>0.8
+	# Keep SNPs with MAF>0.01, R2>0.8. hwe 1e-5
 	${PLINK2} --pfile data_chr${i}_dose \
 			  --extract-if-info "R2>0.8" \
 			  --maf 0.01 \
+			  --hwe 1e-5 \
 			  --make-pgen \
 			  --out data_chr${i}_filtered_temp2\
 			  --keep-allele-order

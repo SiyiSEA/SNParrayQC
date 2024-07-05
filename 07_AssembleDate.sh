@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=250G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/AssembleData.o
-#SBATCH --error=/lustre/home/sww208/QC/OrganizedSNParray/5_JobReports/AssembleData.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/AssembleData.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/AssembleData.e
 #SBATCH --job-name=AssembleData
 
 
@@ -36,8 +36,8 @@
 
 
 source ./config
-echo 'runing 06_AssembleData.sh'
-
+echo 'runing 07_AssembleData.sh'
+module load R/4.2.1-foss-2022a
 
 echo "Assemble QCd data----------------------------------------------"
 # assemble_QC_data 
@@ -132,6 +132,7 @@ assemble_imputed_postQC_data () {
 # assemble_imputed_postQC_data Sanger HRC
 # assemble_imputed_postQC_data Michigan 1000G
 # assemble_imputed_postQC_data Sanger 1000G
+
 echo "Plotting filtered data------------------------------------------"
 
 plot_imputed_postQC_data () {
@@ -148,34 +149,9 @@ plot_imputed_postQC_data () {
 
 }
 
-plot_imputed_postQC_data HRC 
-plot_imputed_postQC_data 1000G
+# plot_imputed_postQC_data HRC 
+# plot_imputed_postQC_data 1000G
 
-
-
-echo "hwe filter data -----------------------------------------------------"
-
-hew_filter_variant () {
-	server=$1
-	panel=$2
-	echo "Filtering data from ${server} for ${panel} based on Hardy-Weinberg exact test."
-	mkdir -p ${SCRIPTDIR}/3_Results/hweFilter
-	output_path=${SCRIPTDIR}/3_Results/hweFilter
-	data_path=${SCRIPTDIR}/3_Results/FilterData${server}${panel}
-
-	for threshold in 5 4 3
-	do
-		${PLINK}/plink --bfile ${data_path}/data_filtered_${panel}_${server} \
-					--make-bed \
-					--hwe 1e-${threshold} \
-					--out ${output_path}/data_filtered_${panel}_${server}_${threshold}
-	done
-}
-
-# hew_filter_variant Michigan HRC
-# hew_filter_variant Sanger HRC
-# hew_filter_variant Michigan 1000G
-# hew_filter_variant Sanger 1000G
 
 echo "PCA and count variants------------------------------------------"
 # PCA and count the variants
@@ -196,11 +172,18 @@ PCA_count_variant () {
 	Rscript ${SCRIPTDIR}/4_Resources/plotPCs.r ${PCApath}/${data_prefix}.imqc.pca.eigenvec 3
 
 	wc -l ${data_path}/${data_prefix}.bim >> ${PCApath}/VariantsCount.txt
-	num_outlier=$(awk "NR>1" ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt | wc -l)
-	echo  ${num_outlier} ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt >> ${PCApath}/VariantsCount.txt
 
-	rm ${PCApath}/${data_prefix}*.ld* ${PCApath}/*.imqc* 
+	for nPC in PC1 PC2 PC3 PC4 PC5 PC6
+	do
+		num_outlier=$(awk -v npc=${nPC} '$5==npc' ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt | wc -l)
+		echo  ${nPC} ${num_outlier} ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt >> ${PCApath}/VariantsCount.txt
+	done
 
+	rm ${PCApath}/${data_prefix}*.ld* 
+	rm ${PCApath}/*.imqc* 
+
+	awk 'NR>1' ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt > ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean_temp.txt
+	sed -e 'ROW FID IID TYPE nPC' ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean_temp.txt
 }
 
 
@@ -210,7 +193,7 @@ PCA_count_variant () {
 # rm -f VariantsCount.txt
 # touch VariantsCount.txt
 
-# works takes an hour
+# # takes an hour
 # PCA_count_variant ${RAWDATADIR} ${FILEPREFIX}
 # PCA_count_variant ${SCRIPTDIR}/3_Results/QCdData ${FILEPREFIX}_QCd
 # PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataSangerHRC data_dose_HRC_Sanger
@@ -222,11 +205,4 @@ PCA_count_variant () {
 # PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataMichiganHRC data_filtered_HRC_Michigan
 # PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSangerHRC data_filtered_HRC_Sanger
 
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Michigan_4
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Michigan_3
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Sanger_4
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_1000G_Sanger_3
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Michigan_4
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Michigan_3
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Sanger_4
-# PCA_count_variant ${SCRIPTDIR}/3_Results/hweFilter data_filtered_HRC_Sanger_3
+echo "Relationship between the PCs between QCd data and PostQC data-----------------------------"
