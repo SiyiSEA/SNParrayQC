@@ -8,9 +8,9 @@ mkdir -p ${CNVDIR}
 
 mkdir -p ${PROCESSDIR}/QCData
 mkdir -p ${PROCESSDIR}/CheckEthnicity
+mkdir -p ${PROCESSDIR}/CheckRelatedness
+mkdir -p ${PROCESSDIR}/FormatImputation
 
-mkdir -p ${IMPUTEDIR}/ImputationInputMichigan
-mkdir -p ${IMPUTEDIR}/ImputationInputSanger
 mkdir -p ${IMPUTEDIR}/ImputationOutputMichigan1000G
 mkdir -p ${IMPUTEDIR}/ImputationOutputMichiganHRC
 mkdir -p ${IMPUTEDIR}/ImputationOutputSanger1000G
