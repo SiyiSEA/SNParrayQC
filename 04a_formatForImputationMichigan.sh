@@ -41,35 +41,48 @@
 
 
 source ./config
+touch "$logfile_04a"
+exec > >(tee "$logfile_04a") 2>&1
+cd ${PROCESSDIR}/FormatImputation || exit
 
-echo 'runing 4_formatForImputation.sh'
+echo "checking the arguments--------------------------------------------------"
+population=$1
+
+if [ -z "$1" ];
+then
+        echo "No argument supplied"
+        echo "Please input the population argument"
+        echo "Population options come from the end of the" $logfile_02
+		exit
+else
+		mkdir -p InputMichigan${population} || exit
+		cd InputMichigan${population} || exit
+fi
+
+echo "Start formatting the QC data for Michigan Imputation-----------------------"
+
+
 
 module purge
 module load VCFtools
-# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh ALL ${KGG}/1000GP_Phase3_combined.legend
-# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh EUR ${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
 
-
-
-population=EUR
-refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
-
-cd ${IMPUTEDIR}/
-
-mkdir -p ImputationInput
-
-cd ImputationInput
-
-mkdir -p ${population}
-
+if [[ $population == "EUR" ]];
+then
+    refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
+elif [[ $population == "ALL" ]];
+then
+    refFile=${KGG}/1000GP_Phase3_combined.legend
+else
+    echo "Cannot process the population" || exit
+fi
 
 
 ## use tool to check data prior to upload https://www.well.ox.ac.uk/~wrayner/tools/
 ## for All use 1000G
-cd ${population}/
 
 ## subset samples
-${PLINK}/plink --bfile ${PROCESSDIR}/${FILEPREFIX}_QCd --keep ${PROCESSDIR}/${population}Samples.txt --maf 0.05 --out ${FILEPREFIX}_QCd_${population} --make-bed
+${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd \
+--keep ${PROCESSDIR}/${population}Samples.txt --maf 0.05 --out ${FILEPREFIX}_QCd_${population} --make-bed
 
 
 ## liftover to hg19 for imputation

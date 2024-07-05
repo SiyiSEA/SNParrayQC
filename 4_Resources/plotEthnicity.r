@@ -25,7 +25,7 @@ subset<-args[4] ## use , to separate multiple files
 
 
 
-pcas<-read.table(paste0(prefix, "_mergedw1000G.imqc.pca.eigenvec"), stringsAsFactors = FALSE)
+pcas<-read.table(paste0(prefix, ".imqc.pca.eigenvec"), stringsAsFactors = FALSE)
 KGped<-read.table(paste(refFolder, "/20130606_g1k.ped", sep = ""), stringsAsFactors = FALSE, header = TRUE, sep = "\t")
 popInfo<-read.table(paste(refFolder, "/PopInfo.txt", sep = ""), stringsAsFactors = FALSE, header = TRUE, sep = "\t") ## table made from 1000G website
 
