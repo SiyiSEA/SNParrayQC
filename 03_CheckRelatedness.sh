@@ -1,54 +1,60 @@
+#!/bin/bash
 ## because our sample is mixed ethnicity this looks funky return to after checking ethnicity.
-## 
 
 ## EXECUTION
-# sh SNPArray/preprocessing/3_CheckRelatedness.sh
-# where 
-# script needs to be executed from <git repo>/array/
+# sh 3_CheckRelatedness.sh
 
-## REQUIRES the following variables in config file
-# RAWDATADIR, FILEPREFIX, 
+## REQUIRES the following files
+# ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd
 
 ## REQUIRES the following software
-# king, plink, 
+# king, plink, R
 
 ## INPUT
-# ${FILEPREFIX}_QCd # binary plink files following prelim QC
+# ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd # binary plink files following prelim QC
 
 ## OUTPUT
-# QCoutput/${FILEPREFIX}_${2}_QCd_king
-# QCoutput/${FILEPREFIX}_${2}_QCd_ibd
+# ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_king
+# ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
 
+source ./config
+touch "$logfile_03"
+exec > >(tee "$logfile_03") 2>&1
+cd ${PROCESSDIR}/CheckRelatedness || exit
 
 check_relatedness () {
-cd ${PROCESSDIR} || exit
 
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --keep $1 --make-bed --out QCoutput/${FILEPREFIX}_${2}_QCd
+   echo "Check the relatedeness for each population--------------------------------------------------------------------------"
 
-## check for relatedness with other samples with KING
-$KINGPATH/king -b QCoutput/${FILEPREFIX}_${2}_QCd.bed --kinship --prefix QCoutput/${FILEPREFIX}_${2}_QCd_king
+   ${PLINK}/plink --bfile ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd --keep $1 --make-bed --out ${FILEPREFIX}_${2}_QCd
 
-Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r QCoutput/${FILEPREFIX}_${2}_QCd_king.kin0 ${SCRIPTDIR}/3_Results
+   ## check for relatedness with other samples with KING
+   "$KINGPATH"/king -b ${FILEPREFIX}_${2}_QCd.bed --kinship --prefix ${FILEPREFIX}_${2}_QCd_kingship
 
-## check for relatedness with other samples with plink
-${PLINK}/plink --bfile QCoutput/${FILEPREFIX}_${2}_QCd --genome --mind 0.2 --out QCoutput/${FILEPREFIX}_${2}_QCd_ibd
+   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r ${FILEPREFIX}_${2}_QCd_kingship.kin0 ${SCRIPTDIR}/3_Results/03
 
-#Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.R QCoutput/${FILEPREFIX}_${2}_QCd_ibd.genome ${SCRIPTDIR}/3_Results $2
+   ## check for relatedness with other samples with plink
+   ${PLINK}/plink --bfile ${FILEPREFIX}_${2}_QCd --genome --mind 0.2 --out ${FILEPREFIX}_${2}_QCd_ibd
 
-rm QCoutput/${FILEPREFIX}_${2}_QCd.*
+   Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.r ${FILEPREFIX}_${2}_QCd_ibd.genome ${SCRIPTDIR}/3_Results/03 $2
+
+   rm ${FILEPREFIX}_${2}_QCd.*
 
 
 }
 
-populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+echo "Identify the population---------------------------------------------------------------------------------------------------"
+populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/02/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+
 for each in ${populations[@]}
 do
-   grep ${each} ${SCRIPTDIR}/3_Results/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${PROCESSDIR}/${each}Samples.txt
+   grep ${each} ${SCRIPTDIR}/3_Results/02/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
    
-   ## 
-   if [[ $(wc -l <${PROCESSDIR}/${each}Samples.txt) -ge 1 ]]
+   
+   if [[ $(wc -l <${each}Samples.txt) -ge 1 ]]
    then
-      check_relatedness ${PROCESSDIR}/${each}Samples.txt ${each}
+      echo "Checking the relatedness on ", ${each}, "population."
+      check_relatedness ${each}Samples.txt ${each}
    fi
    
 done  
