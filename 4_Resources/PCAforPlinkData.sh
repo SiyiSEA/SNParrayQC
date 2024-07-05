@@ -13,7 +13,8 @@ PCAforPlinkData () {
     ${PLINK}/plink \
         --bfile ${bfile} \
         --extract ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune.in \
-        --make-bed --out ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune
+        --make-bed \
+        --out ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune
 
     ${GCTA}/gcta-1.94.1 \
         --bfile ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune \
@@ -37,6 +38,6 @@ PCAforPlinkData () {
     echo "There are" ${nOutlierPC2} "outliers for " ${prefix} " on PC2."
 
     rm ${RESULTSDIR}/PCAVariants/${prefix}.ld* 
-    # rm ${RESULTSDIR}/PCAVariants/${prefix}.imqc*
+    #rm ${RESULTSDIR}/PCAVariants/${prefix}.imqc*
 
 }
