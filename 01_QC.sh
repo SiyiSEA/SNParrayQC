@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ## DESCRIPTIONS
 #This script takes genotype data outputted by genome studio and performs data QC
@@ -13,138 +13,169 @@
 ## REQUIRES the following variables in config file
 ## INPUT raw_data bfile
 ## OUTPUT data_QCd PCA 
-
 source ./config
+source ${RESOURCEDIR}/PCAforPlinkData.sh
+touch "$logfile_01"
+exec > >(tee "$logfile_01") 2>&1
+cd ${PROCESSDIR}/QCData || exit
 
-# Sample Duplication QC
-cd "${PROCESSDIR}" || exit
-mkdir -p QCoutput
+echo "PCA the raw data---------------------------------------------------------------------------------------------------"
+PCA the raw data
+# PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
-# PCA
-${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --indep 50 5 1.5 --out ${RAWDATADIR}/${FILEPREFIX}.ld
-${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --extract ${RAWDATADIR}/${FILEPREFIX}.ld.prune.in --make-bed --out ${RAWDATADIR}/${FILEPREFIX}.ld.prune
+echo "Filter on Sample-level: Check the relatedness and duplications-----------------------------------------------------"
+# Method -1: identify duplication or related individuals or monozygotic twins -- apply
+"$KINGPATH"/king \
+    -b "${RAWDATADIR}"/"${FILEPREFIX}".bed \
+    --related \
+    --degree 2 \
+    --prefix related
 
-mkdir -p GCTAforPCA
-
-${GCTA}/gcta-1.94.1 --bfile ${RAWDATADIR}/${FILEPREFIX}.ld.prune --make-grm-bin --autosome --out GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc
-${GCTA}/gcta-1.94.1 --grm GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc --pca --out GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc.pca
-
-rm ${RAWDATADIR}/${FILEPREFIX}.ld.prune.b* ${RAWDATADIR}/${FILEPREFIX}.ld.prune.fam
-
-# plot PCs to identify outliers
-Rscript ${SCRIPTDIR}/4_Resources/plotPCs.r GCTA/${RAWDATADIR}/${FILEPREFIX}_imqc.pca.eigenvec 3
-mv ScatterplotPCs.pdf ${SCRIPTDIR}/3_Results/ScatterplotPCsRawData.pdf
-mv OutliersFromPC_3SDfromMean.txt ${SCRIPTDIR}/3_Results/OutliersFromPC_3SDfromMeanRawData.txt
-
-
-# identify duplicates or MZ twins.
-"$KINGPATH"/king -b "${RAWDATADIR}"/"${FILEPREFIX}".bed --duplicate --prefix QCoutput/king
-
-
-if [ -s QCoutput/king.con ]
-then 
-
-    cut -f 1,2 QCoutput/king.con > QCoutput/duplicateSamples.tmp
-    cut -f 3,4 QCoutput/king.con >> QCoutput/duplicateSamples.tmp
-    sort QCoutput/duplicateSamples.tmp | uniq > QCoutput/duplicateSamples.txt
-    rm QCoutput/duplicateSamples.tmp
-
-    if [ -s QCoutput/duplicateSamples.txt ]
+if [ -s related.kin0 ]
+then
+    awk 'NR>1 {print $1, $2}' related.kin0 > related.tmp
+    num_dup=$(wc -l related.tmp)
+    if [ -s related.tmp ]
     then
-    
-    ## elevated missing data rate
-    ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out duplicateSamples
-
-	## use python script to identify duplicated with greatest missingness
-	python ${SCRIPTDIR}/utilitys/ExcludeDuplicates.py QCoutput/king.con duplicateSamples.imiss QCoutput/dupsToExclude.txt
-
-	## remove duplicates
-	${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --remove QCoutput/dupsToExclude.txt --make-bed --out ${FILEPREFIX}_update_1
+        echo "There are " $num_dup "sample(s) is/are related."
+        ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} \
+                        --remove related.tmp \
+                        --make-bed \
+                        --out ${FILEPREFIX}_update_1
     fi
-
 else
+    echo "No related individuals."
     cp ${RAWDATADIR}/${FILEPREFIX}.bed ${FILEPREFIX}_update_1.bed
     cp ${RAWDATADIR}/${FILEPREFIX}.bim ${FILEPREFIX}_update_1.bim
     cp ${RAWDATADIR}/${FILEPREFIX}.fam ${FILEPREFIX}_update_1.fam
-
 fi
 
 
-## Variants Duplication QC - remove variants at the same position (i.e. triallelic)
-awk '{if ($1 != 0) print $1":"$4}' ${FILEPREFIX}_update_1.bim > QCoutput/pos.tmp
-sort QCoutput/pos.tmp | uniq -d > QCoutput/dupLocs.txt
+# # Method -2: identify duplicates or MZ twins.
+# "$KINGPATH"/king \
+#     -b ${FILEPREFIX}_update_1.bed \
+#     --duplicate \
+#     --prefix duplication
 
-awk -F ":" '{print $1,$2-1,$2,"set1", "set2"}' QCoutput/dupLocs.txt > QCoutput/positionsExclude.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_1 --exclude range QCoutput/positionsExclude.txt --make-bed --out ${FILEPREFIX}_update_2
+# if [ -s duplication.con ]
+# then 
+#     tail -n +2 duplication.con > duplication.tmp
+#     cut -f 1,2 duplication.tmp >> duplicateSamples.tmp
+#     cut -f 3,4 duplication.tmp >> duplicateSamples.tmp
+#     sort duplicateSamples.tmp | uniq > duplicateSamples.txt
+#     rm duplicateSamples.tmp
 
-rm QCoutput/pos.tmp
-rm QCoutput/dupLocs.txt
+#     if [ -s duplicateSamples.txt ]
+#     then
+    
+#     ## elevated missing data rate
+#     ${PLINK}/plink --bfile ${FILEPREFIX}_update_1 --missing --out duplicateSamples
 
+# 	## use python script to identify duplicated with greatest missingness
+# 	python ${RESOURCEDIR}/ExcludeDuplicates.py duplication.con duplicateSamples.imiss dupsToExclude.txt
 
-## exclude samples which do not have sex predicted
-## exclude mismatched samples
-## retain samples with missing sex info
-${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --mind 0.02 --check-sex --out QCoutput/SexCheck
-awk '{if ($4 == 0) print $1,$2 }' QCoutput/SexCheck.sexcheck > QCoutput/sexErrors.txt
-awk '{if ($4 != $3 && $3 != 0) print $1,$2 }' QCoutput/SexCheck.sexcheck >> QCoutput/sexErrors.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_2 --remove QCoutput/sexErrors.txt --make-bed --out ${FILEPREFIX}_update_3
+# 	## remove duplicates
+# 	${PLINK}/plink \
+#         --bfile ${FILEPREFIX}_update_1 \
+#         --remove dupsToExclude.txt \
+#         --make-bed \
+#         --out ${FILEPREFIX}_update_2
+#     fi
 
+# else
+#     cp ${FILEPREFIX}_update_1.bed ${FILEPREFIX}_update_2.bed
+#     cp ${FILEPREFIX}_update_1.bim ${FILEPREFIX}_update_2.bim
+#     cp ${FILEPREFIX}_update_1.fam ${FILEPREFIX}_update_2.fam
 
+# fi
+# PCAforPlinkData ${FILEPREFIX}_update_1 ${FILEPREFIX}_update_1 3
+echo "Filter on SNP-level: duplication variants--------------------------------------------------------------------------"
+# method-1 -- apply
+${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --list-duplicate-vars ids-only suppress-first --out ${FILEPREFIX}_update_3
+num_dup_var=$(wc -l ${FILEPREFIX}_update_3.dupvar)
+echo "There are " $num_dup_var " variant(s) are duplicated."
+${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --exclude ${FILEPREFIX}_update_3.dupvar --make-bed --out ${FILEPREFIX}_update_4
 
-## Sample Heterozygosity and missing genetype call rate QC (only for autosome)
-awk '{if ($1 >= 1 && $1 <= 22) print $2}' ${FILEPREFIX}_update_3.bim > QCoutput/autosomalVariants.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --extract QCoutput/autosomalVariants.txt --missing --out missingSamples
+# method-2
+# Variants Duplication QC - remove variants at the same position (i.e. triallelic)
+# awk '{if ($1 != 0) print $1":"$4}' ${FILEPREFIX}_update_2.bim > pos.tmp
+# sort pos.tmp | uniq -d > dupLocs.txt
+# num_dupLocs=$(wc -l dupLoc.txt)
+# echo "There are " "$num_dupLocs" duplicated locus in the data.
 
-## Smpale related indiciduals (IBS, IBD calculation)
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --extract QCoutput/autosomalVariants.txt --maf 0.01 --hwe 0.00001 --mind 0.02 --geno 0.05 --indep-pairwise 5000 1000 0.2 --out ld.auto
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --extract QCoutput/ld.auto.prune.in --het --out QCoutput/roh
-
-## plot missing rate vs F rate, missing rate vs heterozygosity
-Rscript /lustre/home/sww208/GoDMC/QC/OrganizedSNParray/4_Resources/Plot_mis_het.R
-
-## exclude anyone with |Fhet| > 0.2, missing rate > 0.02
-# based on the mis_het.pdf, the --mind should be 0.02
-awk '{if ($6 > 0.2 || $6 < -0.2) print $1,$2}' roh.het > QCoutput/excessHet.txt
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --remove QCoutput/excessHet.txt --make-bed --out ${FILEPREFIX}_update_4
-rm QCoutput/autosomalVariants.txt
-
-
-
-
-
-## Variants missing call rate QC
-# previous QC step for calculating sample missing call rate - .lmiss
-# based on the mis_het.pdf, the geno threshold could be 0.05
-
-
-## Variants Minor allele frequencies
-# based on the mis_het.pdf, the maf threshold could be 0.02?
-${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --freq --out variant_freq
-Rscript /lustre/home/sww208/GoDMC/QC/OrganizedSNParray/4_Resources/Plot_MAF.R
-
-## filter sample and variant missingness, HWE, rare variants and exclude variants with no position
-awk '{if ($1 == 0) print $2}' ${FILEPREFIX}_update_4.bim > QCoutput/noLocPos.tmp
-${PLINK}/plink --bfile ${FILEPREFIX}_update_4 --exclude QCoutput/noLocPos.tmp --maf 0.001 --hwe 0.00001 --mind 0.02 --geno 0.05 --make-bed --out ${FILEPREFIX}_QCd
-
-
-
-## clean up intermediate files but keep log files
-rm ${FILEPREFIX}_update_*.b*
-rm ${FILEPREFIX}_update_*.fam
+# awk -F ":" '{print $1,$2-1,$2,"set1", "set2"}' dupLocs.txt > positionsExclude.txt
+# ${PLINK}/plink --bfile ${FILEPREFIX}_update_2 \
+#             --exclude range positionsExclude.txt \
+#             --make-bed \
+#             --out ${FILEPREFIX}_update_3
 
 
-## calc PCS within sample only
+echo "Filter on SNP-level: missing rate of variants----------------------------------------------------------------------"
+# Variants missing call rate QC
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out rawMissing
+
+echo "Filter on SNP-level: MAF-------------------------------------------------------------------------------------------"
+# Variants Minor allele frequencies
+# the maf threshold could be 0.01
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --freq --out rawVariantFreq
+
+# filter sample and variant missingness, HWE, rare variants and exclude variants with no position
+awk '{if ($1 == 0) print $2}' ${FILEPREFIX}_update_3.bim > ${FILEPREFIX}_noLocPos.tmp
+${PLINK}/plink --bfile ${FILEPREFIX}_update_3 \
+                --maf 0.01 \
+                --hwe 0.000001 \
+                --mind 0.02 \
+                --geno 0.05 \
+                --exclude ${FILEPREFIX}_noLocPos.tmp \
+                --make-bed \
+                --out ${FILEPREFIX}_update_4
+
+##remove variants with 3+ alleles
+${PLINK}/plink --bfile ${FILEPREFIX}_update_4 \
+                --biallelic-only strict \
+                --make-bed \
+                --out ${FILEPREFIX}_update_5
+
+
+
+echo "Filter on Sample-level: heterozygosity, missing rate and gender check----------------------------------------------"
 # LD prune
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --indep 50 5 1.5 --out ${FILEPREFIX}_QCd.ld
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --extract ${FILEPREFIX}_QCd.ld.prune.in --make-bed --out ${FILEPREFIX}_QCd.ld.prune
+${PLINK}/plink  --bfile ${FILEPREFIX}_update_5 \
+                --indep 50 5 1.5 \
+                --out ${FILEPREFIX}_update_5.ld
 
-mkdir -p GCTA
+# calculate the heterozygosity rate - hetF out of range of mean-3SD and mean+3SD
+${PLINK}/plink  --bfile ${FILEPREFIX}_update_5 \
+                --extract ${FILEPREFIX}_update_5.ld.prune.in \
+                --het \
+                --autosome \
+                --out hetGenotypes
 
-${GCTA}/gcta-1.94.1 --bfile ${FILEPREFIX}_QCd.ld.prune --make-grm-bin --autosome --out GCTA/${FILEPREFIX}_QCd_GCTA
-${GCTA}/gcta-1.94.1 --grm GCTA/${FILEPREFIX}_QCd_GCTA --pca --out GCTA/${FILEPREFIX}_QCd.pca
+# elevated missing data rates - missingF > 0.01
+${PLINK}/plink  --bfile ${FILEPREFIX}_update_5 \
+                --missing \
+                --out missingGenotypes
 
-rm ${FILEPREFIX}_QCd.ld.prune*
+# gender check - sex error
+${PLINK}/plink  --bfile ${RAWDATADIR}/${FILEPREFIX} \
+                --extract ${FILEPREFIX}_update_5.ld.prune.in \
+                --check-sex \
+                --out SexCheck
+num_sex_error=$(cat "SexCheck.sexcheck" | grep PROBLEM | wc -l)
+echo "There are " "$num_sex_error" " sample(s) needed to be removed due the sex error."
 
-## extract SNP probes for comparison with DNAm data
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd --extract ${EPICREF}/RSprobes.txt --recodeA --out ${FILEPREFIX}_59DNAmSNPs
+# generate a list of sample fail on above checking and remove the failed samples
+Rscript ${RESOURCEDIR}/list_failqc.r
+${PLINK}/plink  --bfile ${FILEPREFIX}_update_5 \
+                --remove fail_mis_het_sex.txt \
+                --make-bed \
+                --out ${FILEPREFIX}_QCd
 
+cp ${FILEPREFIX}_QCd.* ${RESULTSDIR}/01/.
+
+echo "PCA the QCd data---------------------------------------------------------------------------------------------------"
+PCAforPlinkData ${FILEPREFIX}_QCd ${FILEPREFIX}_QCd 3
+
+# ## clean up intermediate files but keep log files
+# Rscript ${RESOURCEDIR}/QCreport01.r
+rm ${FILEPREFIX}_update_*.*

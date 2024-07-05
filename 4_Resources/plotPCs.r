@@ -13,7 +13,7 @@ pcSigma<-apply(impute[,-c(1:2)], 2, sd)
 
 outname<-unlist(strsplit(filename, "[.]"))[[1]]
 
-pdf(paste0(outname,"_ScatterplotPCs.pdf"), width = 12, height = 4)
+pdf(paste0(outname,"_ScatterPCs.pdf"), width = 12, height = 4)
 par(mfrow = c(1,3))
 par(mar = c(4,4,1,1))
 plot(impute[,3],impute[,4], pch= 16, xlab = "PC1", ylab = "PC2")
@@ -41,9 +41,14 @@ outliers<-NULL
 for(i in 3:22){
   index<-which(impute[,i] > pcMu[i-2]+nSD*pcSigma[i-2] | impute[,i] < pcMu[i-2]-nSD*pcSigma[i-2])
   if(length(index) > 0){
-   outliers<-rbind(outliers, cbind(impute[index,1:2], paste("Outlier PC", (i-2), sep = "")))
+   outliers<-rbind(outliers, cbind(impute[index,1:2], paste("PC", (i-2), sep = "")))
   }
 }
 
 colnames(outliers) = c("FID", "IID", "nPC")
+
 write.table(outliers, paste(outname, "_OutliersFromPC_",nSD,"SDfromMean.txt", sep = ""), quote = FALSE, sep = " ")
+
+outlierPC1PC2 = subset(outliers, nPC == "PC1" | nPC == "PC2", select = c(FID, IID, nPC))
+
+write.table(outlierPC1PC2[,1:2], paste0(outname, "_Outliers.txt"), quote = FALSE, row.names = FALSE, col.names = FALSE)
