@@ -26,7 +26,11 @@ mkdir -p ${RESULTSDIR}/02
 mkdir -p ${RESULTSDIR}/03
 mkdir -p ${RESULTSDIR}/04
 mkdir -p ${RESULTSDIR}/05
-mkdir -p ${RESULTSDIR}/06
+mkdir -p ${RESULTSDIR}/05a
+mkdir -p ${RESULTSDIR}/05b
+mkdir -p ${RESULTSDIR}/05c
+mkdir -p ${RESULTSDIR}/06a
+mkdir -p ${RESULTSDIR}/06b
 mkdir -p ${RESULTSDIR}/07
 
 # Define the variables for log files
@@ -79,4 +83,11 @@ then
     wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_sample_info.txt
     wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_sample_info.xlsx
     wget https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/README_20130606_sample_info
+fi
+
+if [ ! -s ${RESOURCEDIR}/HRC-1000G-check-bim.pl ]
+then
+    wget http://www.well.ox.ac.uk/~wrayner/tools/HRC-1000G-check-bim-v4.2.7.zip
+    wget ftp://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz
+    wget https://www.chg.ox.ac.uk/~wrayner/tools/1000GP_Phase3_combined.legend.gz
 fi

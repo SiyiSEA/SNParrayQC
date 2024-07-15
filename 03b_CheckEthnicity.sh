@@ -7,14 +7,14 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/02CheckEthnicity.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/02CheckEthnicity.e
-#SBATCH --job-name=02CheckEthnicity
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/03CheckEthnicity.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/03CheckEthnicity.e
+#SBATCH --job-name=03CheckEthnicity
 
 ## This script determines sample ethnicity by comparing to 1000G super populations
 
 ## EXECUTION
-# sh SNPArray/preprocessing/2_CheckEthnicity.sh
+# sh SNPArray/preprocessing/03_CheckEthnicity.sh
 # where 
 # script needs to be executed from <git repo>/array/
 
@@ -58,7 +58,7 @@ ${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd \
 echo "Update the vairants ID for QCd data---------------------------------------------------------------------------"
 # change variant ids to chr:bp since 1000G_gr38_maffilt is chr:bp
 awk '{if ($1 != 0) print $2, "chr"$1":"$4}' ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38.bim > updateTo1KGFormat.txt
-${PLINK}/plink --bfile ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg388 \
+${PLINK}/plink --bfile ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38 \
                 --update-name updateTo1KGFormat.txt \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_1kgIDs
@@ -100,8 +100,7 @@ echo "Plot the PCs--------------------------------------------------------------
 Rscript ${SCRIPTDIR}/4_Resources/plotEthnicity.r ${RESULTSDIR}/03 ${RESULTSDIR}/PCAVariants/${FILEPREFIX}_merged_1000G_forLD ${KGG} 
 
 # remove redundants
-# rm mergedw1000G_test*
+rm ${FILEPREFIX}_1kgIDs_forMerge*
 populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 echo "The indivuduals from the data could belongs to" ${populations}
 echo "If your data comes from more than one population, please check the relatedness for each population."
-echo "Otherwise, please skip the 03_CheckRelatedenss."

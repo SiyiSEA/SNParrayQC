@@ -20,8 +20,7 @@ exec > >(tee "$logfile_01") 2>&1
 cd ${PROCESSDIR}/QCData || exit
 
 echo "PCA the raw data---------------------------------------------------------------------------------------------------"
-PCA the raw data
-# PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
+PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
 echo "Filter on Sample-level: Check the relatedness and duplications-----------------------------------------------------"
 # Method -1: identify duplication or related individuals or monozygotic twins -- apply
@@ -91,10 +90,10 @@ fi
 # PCAforPlinkData ${FILEPREFIX}_update_1 ${FILEPREFIX}_update_1 3
 echo "Filter on SNP-level: duplication variants--------------------------------------------------------------------------"
 # method-1 -- apply
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --list-duplicate-vars ids-only suppress-first --out ${FILEPREFIX}_update_3
-num_dup_var=$(wc -l ${FILEPREFIX}_update_3.dupvar)
+${PLINK}/plink --bfile ${FILEPREFIX}_update_1 --list-duplicate-vars ids-only suppress-first --out ${FILEPREFIX}_update_2
+num_dup_var=$(wc -l ${FILEPREFIX}_update_2.dupvar)
 echo "There are " $num_dup_var " variant(s) are duplicated."
-${PLINK}/plink --bfile ${FILEPREFIX}_update_3 --exclude ${FILEPREFIX}_update_3.dupvar --make-bed --out ${FILEPREFIX}_update_4
+${PLINK}/plink --bfile ${FILEPREFIX}_update_1 --exclude ${FILEPREFIX}_update_2.dupvar --make-bed --out ${FILEPREFIX}_update_3
 
 # method-2
 # Variants Duplication QC - remove variants at the same position (i.e. triallelic)

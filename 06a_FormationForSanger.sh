@@ -12,7 +12,7 @@
 
 
 
-## format files for use with Sanger Imputation Server
+## format files for use with Sanger Imputation Server https://imputation.sanger.ac.uk/
 
 ## EXECUTION
 # sh SNPArray/preprocessing/4_formatForimputation.sh <population> 
@@ -41,102 +41,122 @@
 
 
 source ./config
+touch "$logfile_06a"
+exec > >(tee "$logfile_06a") 2>&1
+cd ${PROCESSDIR}/FormatImputation || exit
 
-echo 'runing 4_formatForImputation.sh'
+# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh ALL ${KGG}/1000GP_Phase3_combined.legend
+# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh EUR ${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
+
+echo "checking the arguments--------------------------------------------------"
+population=$1
+
+if [ -z "$1" ];
+then
+        echo "No argument supplied"
+        echo "Please input the population argument"
+        echo "Population options come from the end of the" $logfile_03b
+		exit
+else
+        if [[ $population == "EUR" ]];
+        then
+            refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
+            mkdir -p InputSangerEUR || exit
+		        cd InputSangerEUR || exit
+
+        elif [[ $population == "ALL" ]];
+        then
+            refFile=${KGG}/1000GP_Phase3_combined.legend
+            mkdir -p InputSangerALL || exit
+		        cd InputSangerALL || exit
+        else
+            echo "Cannot process the population" 
+            exit
+        fi
+fi
+
+echo "Start formatting the QC data for Sanger Imputation-----------------------"
 
 module purge
 module load VCFtools
 module load BCFtools
-# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh ALL ${KGG}/1000GP_Phase3_combined.legend
-# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh EUR ${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
-
-
-population=$1
-
-if [ $population == "EUR" ]; 
-  then refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
-elif [ $population == "ALL" ];
-  then
-  refFile=${KGG}/1000GP_Phase3_combined.legend
-fi
-
-
-cd ${IMPUTEDIR}/ || exit 
-
-mkdir -p ImputationInputSanger
-
-cd ImputationInputSanger
-
-mkdir -p ${population}
-
-cd ${population}/ || exit 
-
-
 
 ## use tool to check data prior to upload https://www.well.ox.ac.uk/~wrayner/tools/
+# follow the instruction of https://imputation.sanger.ac.uk/?instructions=1#prepareyourdata
 ## subset samples
 if [ $population == "EUR" ]
   then
-  ${PLINK}/plink --bfile ${PROCESSDIR}/${FILEPREFIX}_QCd --keep ${PROCESSDIR}/${population}Samples.txt --maf 0.05 --out ${FILEPREFIX}_QCd_${population} --make-bed
+  ${PLINK}/plink --bfile${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed \
+                --keep ${PROCESSDIR}/${population}Samples.txt \
+                --maf 0.05 \
+                --make-bed \
+                --out ${FILEPREFIX}_QCd_${population}
 elif [ $population == "ALL" ]
   then
-    cp ${PROCESSDIR}/${FILEPREFIX}_QCd.bim ${FILEPREFIX}_QCd_${population}.bim
-  	cp ${PROCESSDIR}/${FILEPREFIX}_QCd.bed ${FILEPREFIX}_QCd_${population}.bed
-  	cp ${PROCESSDIR}/${FILEPREFIX}_QCd.fam ${FILEPREFIX}_QCd_${population}.fam
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bim ${FILEPREFIX}_QCd_${population}.bim
+  	cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bed ${FILEPREFIX}_QCd_${population}.bed
+  	cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.fam ${FILEPREFIX}_QCd_${population}.fam
 else
   echo "Please input either EUR or ALL as the first arg!"
   exit 1
 fi
 
-## liftover to hg19 for imputation
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} --update-map ${PROCESSDIR}/Hg19build.txt --make-bed --out ${FILEPREFIX}_QCd_${population}_hg19
+# convert the hg17.bim file into hg19.BED file
+awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population} > QCd.BED
+${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
+mapped_variant=$(wc -l Mapped.BED)
+total_variant=$(wc -l QCd.BED)
+echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
 
+# check if you have althernative chr
+awk '{print $1}' Mapped.BED | sort -u
+awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
 
-
-# make sure the chromosome names are only number
-# generate the VCF file
-# https://github.com/sennpuuki/convert-Plink-to-VCF-format
-# ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 --recode vcf --out ${FILEPREFIX}
-# "Provisional reference allele, may not be based on real reference genome"
-# PLINK does have the recode function to convert PLINK files into VCF but the allele at REF column in the resulting VCF is not necessarily REF.
-# fix REF
-# install bx-python: pip install bx-python - failed
-#wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.2bit
-#./plink_to_vcf.py ${FILEPREFIX}.vcf hg19.2bit
-# output is ${FILEPREFIX}-fix.vcf
-
-
-# check VCF is sorted
-#bgzip -c input.vcf > input.vcf.gz
-#bcftools index input.vcf.gz
-# Check and fix the REF allele
-#wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
-#bcftools ${FILEPREFIX}.vcf --check-ref e -f human_g1k_v37.fasta.gz -Ou -o ${FILEPREFIX}_checkREF.vcf
+${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} \
+                --update-map NewPosition.txt \
+                --make-bed \
+                --out ${FILEPREFIX}_QCd_${population}_hg19
 
 
 ## for HRC check tool need freq file
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 --freq --out ${FILEPREFIX}_QCd_hg19_freq
+${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 \
+                --freq \
+                --out ${FILEPREFIX}_QCd_${population}_hg19_freq
 
+if [[ $population == "EUR" ]];
+then
+    refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
+    perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_${population}_hg19_freq.frq -r ${refFile} -h
 
-if [[ $(basename ${refFile}) == HRC* ]] ;
-  then
-  perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_hg19_freq.frq -r ${refFile} -g --hrc
+elif [[ $population == "ALL" ]];
+then
+    refFile=${KGG}/1000GP_Phase3_combined.legend
+    perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_${population}_hg19_freq.frq -r ${refFile} -g -p ALL
 else
-  perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_hg19_freq.frq -r ${refFile} -g --1000g
+    echo "Cannot process the population, Please check the input argument." 
+    exit
 fi
 
 
-# the ${PLINK}/plink is the version of 1.9
+# sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
+# sed -i '/--real-ref-alleles/d' Run-plink.sh
+# sh Run-plink.sh
+# ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated \
+#           --real-ref-alleles \
+#           --make-bed \
+#           --out ${FILEPREFIX}_QCd_${population}_hg19-updated_temp
+# ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated_temp \
+#           --real-ref-alleles \
+#           --recode vcf \
+#           --out ${FILEPREFIX}_QCd_${population}_hg19-updated_final
+
+
+# bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated_final.vcf -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
+
 sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
-sed -i '/--real-ref-alleles/d' Run-plink.sh
-sh Run-plink.sh
-${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated --real-ref-alleles --make-bed --out ${FILEPREFIX}_QCd_${population}_hg19-updated
-${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated --real-ref-alleles --recode vcf --out ${FILEPREFIX}_QCd_${population}_hg19-updated
-
-
-# bgzip -c ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf > ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf.gz
-# bcftools index ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf.gz
-
-bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf -Oz -o ${FILEPREFIX}_QCd_${population}_hg19-updated.vcf.gz
+for file in *.vcf; do vcf-sort ${file} | bgzip -c > ${file}.gz;done
+ls ${FILEPREFIX}_QCd_${population}_hg19-updated-chr*.vcf.gz > list_vsf.txt
+bcftools concat -f list_vsf.txt -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19.vcf.gz
+bcftools index ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19.vcf.gz
 
 echo 'done 4_formatForImputationSanger.sh'
