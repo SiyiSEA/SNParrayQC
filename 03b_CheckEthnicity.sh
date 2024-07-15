@@ -32,15 +32,15 @@
 # merge1KG/${FILEPREFIX}_mergedw1000G.pca # pca for sample and 1000 genome combined
 
 source ./config
-touch "$logfile_04b"
+touch "$logfile_03b"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
-exec > >(tee "$logfile_04b") 2>&1
+exec > >(tee "$logfile_03b") 2>&1
 cd ${PROCESSDIR}/CheckEthnicity || exit
 
 echo "Liftover the QCd data---------------------------------------------------------------------------"
 # liftover to GRCh38, since 1000G is based on the GRCh38
 # convert the hg17.bim file into hg19.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${RESULTSDIR}/03/${FILEPREFIX}_QCd_trimmed.bim > QCd.BED
+awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 
 mapped_variant=$(wc -l Mapped.BED)
 total_variant=$(wc -l QCd.BED)
@@ -53,12 +53,12 @@ awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
 ${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd \
                 --update-map NewPosition.txt \
                 --make-bed \
-                --out ${RESULTSDIR}/04/${FILEPREFIX}_QCd_hg38
+                --out ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38
 
 echo "Update the vairants ID for QCd data---------------------------------------------------------------------------"
 # change variant ids to chr:bp since 1000G_gr38_maffilt is chr:bp
-awk '{if ($1 != 0) print $2, "chr"$1":"$4}' ${RESULTSDIR}/04/${FILEPREFIX}_QCd_hg38.bim > updateTo1KGFormat.txt
-${PLINK}/plink --bfile ${RESULTSDIR}/04/${FILEPREFIX}_QCd_hg388 \
+awk '{if ($1 != 0) print $2, "chr"$1":"$4}' ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38.bim > updateTo1KGFormat.txt
+${PLINK}/plink --bfile ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg388 \
                 --update-name updateTo1KGFormat.txt \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_1kgIDs
@@ -97,11 +97,11 @@ PCAforPlinkData ${FILEPREFIX}_merged_1000G_forLD ${FILEPREFIX}_merged_1000G_forL
 
 # plot PCs - take 11mins
 echo "Plot the PCs---------------------------------------------------------------------------"
-Rscript ${SCRIPTDIR}/4_Resources/plotEthnicity.r ${RESULTSDIR}/04 ${RESULTSDIR}/PCAVariants/${FILEPREFIX}_merged_1000G_forLD ${KGG} 
+Rscript ${SCRIPTDIR}/4_Resources/plotEthnicity.r ${RESULTSDIR}/03 ${RESULTSDIR}/PCAVariants/${FILEPREFIX}_merged_1000G_forLD ${KGG} 
 
 # remove redundants
 # rm mergedw1000G_test*
-populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/04/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 echo "The indivuduals from the data could belongs to" ${populations}
 echo "If your data comes from more than one population, please check the relatedness for each population."
 echo "Otherwise, please skip the 03_CheckRelatedenss."

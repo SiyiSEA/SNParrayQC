@@ -4,7 +4,7 @@
 #This script is for identifying the outliers in individual levels
 
 ## EXECUTION
-# sh 03_CheckOutliers.sh
+# sh 02_CheckOutliers.sh
 
 ## SOFTWARES
 # plink, R
@@ -15,8 +15,8 @@
 
 source ./config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
-touch "$logfile_03"
-exec > >(tee "$logfile_03") 2>&1
+touch "$logfile_02"
+exec > >(tee "$logfile_02") 2>&1
 
 cd ${PROCESSDIR}/CheckOutliers || exit
 
@@ -43,7 +43,7 @@ then
                     --keep ${FILEPREFIX}_QCd.keep \
                     --make-bed \
                     --out ${FILEPREFIX}_QCd_trimmed
-    cp ${FILEPREFIX}_QCd_trimmed.* ${RESULTSDIR}/03/.
+    cp ${FILEPREFIX}_QCd_trimmed.* ${RESULTSDIR}/02/.
     PCAforPlinkData ${FILEPREFIX}_QCd_trimmed ${FILEPREFIX}_QCd_trimmed 3
 else
     echo "Please detect the threshold from the Bigsnper_PCA.pdf"

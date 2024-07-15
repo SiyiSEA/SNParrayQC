@@ -14,9 +14,9 @@
 # This scritp is to generating 1000G based on hg19;
 # if you do not have the 1000G in hg38, you can run this script;
 source ./config
-touch "$logfile_04a"
+touch "$logfile_03a"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
-exec > >(tee "$logfile_04a") 2>&1
+exec > >(tee "$logfile_03a") 2>&1
 cd ${RESOURCEDIR}/1000G || exit
 
 #================================================================================================

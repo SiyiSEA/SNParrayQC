@@ -18,8 +18,8 @@
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
 
 source ./config
-touch "$logfile_02"
-exec > >(tee "$logfile_02") 2>&1
+touch "$logfile_04"
+exec > >(tee "$logfile_04") 2>&1
 cd ${PROCESSDIR}/CheckRelatedness || exit
 
 check_relatedness () {
@@ -36,7 +36,7 @@ check_relatedness () {
    ## check for relatedness with other samples with plink
    ${PLINK}/plink --bfile ${FILEPREFIX}_${2}_QCd --genome --mind 0.2 --out ${FILEPREFIX}_${2}_QCd_ibd
 
-   Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.r ${FILEPREFIX}_${2}_QCd_ibd.genome ${SCRIPTDIR}/3_Results/03 $2
+   Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.r ${FILEPREFIX}_${2}_QCd_ibd.genome ${SCRIPTDIR}/3_Results/04 $2
 
    rm ${FILEPREFIX}_${2}_QCd.*
 
@@ -44,11 +44,11 @@ check_relatedness () {
 }
 
 echo "Identify the population---------------------------------------------------------------------------------------------------"
-populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/02/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 
 for each in ${populations[@]}
 do
-   grep ${each} ${SCRIPTDIR}/3_Results/02/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
+   grep ${each} ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
    
    
    if [[ $(wc -l <${each}Samples.txt) -ge 1 ]]
