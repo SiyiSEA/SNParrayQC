@@ -7,16 +7,16 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/02a1000Gpreparation.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/02a1000Gpreparation.e
-#SBATCH --job-name=02a
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/04aCEpreparation.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/04aCEpreparation.e
+#SBATCH --job-name=04a
 
 # This scritp is to generating 1000G based on hg19;
 # if you do not have the 1000G in hg38, you can run this script;
 source ./config
-touch "$logfile_02"
+touch "$logfile_04a"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
-exec > >(tee "$logfile_02") 2>&1
+exec > >(tee "$logfile_04a") 2>&1
 cd ${RESOURCEDIR}/1000G || exit
 
 #================================================================================================

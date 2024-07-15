@@ -2,7 +2,7 @@
 ## because our sample is mixed ethnicity this looks funky return to after checking ethnicity.
 
 ## EXECUTION
-# sh 3_CheckRelatedness.sh
+# sh 02_CheckRelatedness.sh
 
 ## REQUIRES the following files
 # ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd
@@ -18,8 +18,8 @@
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
 
 source ./config
-touch "$logfile_03"
-exec > >(tee "$logfile_03") 2>&1
+touch "$logfile_02"
+exec > >(tee "$logfile_02") 2>&1
 cd ${PROCESSDIR}/CheckRelatedness || exit
 
 check_relatedness () {
