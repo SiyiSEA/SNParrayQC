@@ -175,6 +175,18 @@ cp ${FILEPREFIX}_QCd.* ${RESULTSDIR}/01/.
 echo "PCA the QCd data---------------------------------------------------------------------------------------------------"
 PCAforPlinkData ${FILEPREFIX}_QCd ${FILEPREFIX}_QCd 3
 
+echo "Trim the Ouliters based on the 3 sd--------------------------------------------------------------------------------"
+if [ -s OutlierQC.txt ]
+then
+    ${PLINK}/plink  --bfile ${FILEPREFIX}_QCd \
+                    --remove OutlierQC.txt \
+                    --make-bed \
+                    --out ${FILEPREFIX}_QCd_trimmed
+    cp ${FILEPREFIX}_QCd_trimmed.* ${RESULTSDIR}/01/.
+    PCAforPlinkData ${FILEPREFIX}_QCd_trimmed ${FILEPREFIX}_QCd_trimmed 3
+else
+    echo "There is no outliers can be identified by the 3SD"
+fi
 # ## clean up intermediate files but keep log files
 # Rscript ${RESOURCEDIR}/QCreport01.r
 rm ${FILEPREFIX}_update_*.*

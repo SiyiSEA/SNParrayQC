@@ -34,9 +34,11 @@ PCAforPlinkData () {
 
     nOutlierPC1=$(grep -c "\<PC1\>" ${RESULTSDIR}/PCAVariants/${prefix}_OutliersFromPC_${nSD}SDfromMean.txt)
     echo "There are" ${nOutlierPC1} "outliers for " ${prefix} " on PC1."
+    awk '$4=="PC1" {print $2,$3}' ${RESULTSDIR}/PCAVariants/${prefix}_OutliersFromPC_${nSD}SDfromMean.txt > OutlierPC1.txt
     nOutlierPC2=$(grep -c "\<PC2\>" ${RESULTSDIR}/PCAVariants/${prefix}_OutliersFromPC_${nSD}SDfromMean.txt)
     echo "There are" ${nOutlierPC2} "outliers for " ${prefix} " on PC2."
-
+    awk '$4=="PC2" {print $2,$3}' ${RESULTSDIR}/PCAVariants/${prefix}_OutliersFromPC_${nSD}SDfromMean.txt > OutlierPC2.txt
+    sort OutlierPC1.txt OutlierPC2.txt | uniq > OutlierQC.txt
     rm ${RESULTSDIR}/PCAVariants/${prefix}.ld* 
     #rm ${RESULTSDIR}/PCAVariants/${prefix}.imqc*
 
