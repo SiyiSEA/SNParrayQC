@@ -26,7 +26,7 @@ check_relatedness () {
 
    echo "Check the relatedeness for each population--------------------------------------------------------------------------"
 
-   ${PLINK}/plink --bfile ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd --keep $1 --make-bed --out ${FILEPREFIX}_${2}_QCd
+   ${PLINK}/plink --bfile ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed --keep $1 --make-bed --out ${FILEPREFIX}_${2}_QCd
 
    ## check for relatedness with other samples with KING
    "$KINGPATH"/king -b ${FILEPREFIX}_${2}_QCd.bed --kinship --prefix ${FILEPREFIX}_${2}_QCd_kingship

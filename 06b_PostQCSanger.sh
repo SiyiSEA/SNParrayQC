@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #SBATCH --export=ALL # export all environment variables to the batch job.
 #SBATCH -p mrcq # submit to the serial queue
 #SBATCH --time=24:00:00 # Maximum wall time for the job.
@@ -7,17 +7,18 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=100G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/06b_PostQCSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/06b_PostQCSanger.e
 #SBATCH --job-name=PostQCSanger
 
 
 ## output files for use with Sanger Imputation Server
 # this script is for deal with the output file from Sanger Imputation Server, 
-# So, please download the zip file for each chr into the ${IMPUTEDIR}/chrzip folder
+# So, please download the zip file for each chr into the ${IMPUTEDIR}/
 
 ## EXECUTION
-# sbatch ./05_PostQCSanger.sh <reference panel>
+# sbatch ./06b_PostQCSanger.sh <reference panel>
+# <reference panel> could be either HRC or 1000G
 
 ## REQUIRES the following variables in config file
 # ${IMPUTEDIR}, ${RAWDATADIR}/${FILEPREFIX}, ${SCRIPTDIR}
@@ -31,10 +32,11 @@
 ## OUTPUT
 # data_filtered_Sanger.bim, data_filteredSanger_Sanger.fam, data_filtered_Sanger.bed, data_filtered_Sanger.info
 
-
-
-module load R/4.2.1-foss-2022a
 source ./config
+touch "$logfile_06b"
+exec > >(tee "$logfile_06b") 2>&1
+module purge
+module load R/4.2.1-foss-2022a
 
 
 echo "checking the arguments--------------------------------------------------"
@@ -54,12 +56,18 @@ fi
 
 echo "runing PostQC for Imputed data from Sanger----------------------------"
 
+if [ -s X.vcf.gz ]
+then
+	chrNum=23
+	# chr23 will fail on --make-pgen if there is no sex info
+	awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
+else
+	chrNum=22
+	echo "Warnning: There is no SEX CHR!!!!!!!!!!!!!!!!!!!!!!!!"
+fi
 
-# chr23 will fail on --make-pgen if there is no sex info
-awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
 
-
-for i in {1..23}
+for i in $(seq 1 $chrNum)
 do
 	# convert the vcf.gz into pgen formats
 	if [[ $i -eq 23 && $panel == "1000G" ]]; 
@@ -145,7 +153,7 @@ done
 echo "Merge--------------------------------------------------"
 rm -f mergefile.txt
 touch mergefile.txt
-for i in {2..23}
+for i in $(seq 2 $chrNum)
 do 
 	if [ -f "data_chr${i}_filtered.bed" ]; then
 		echo "data_chr${i}_filtered" >> mergefile.txt
@@ -171,14 +179,14 @@ cp data_filtered_Sanger.fam data_filtered_Sanger.fam.orig
 awk '{print $2,$2,$3,$4,$5,$6}' < data_filtered_Sanger.fam.orig > data_filtered_Sanger.fam
 
 # correct the FID and IID for fam file
-Rscript ${DATADIR}/4_Resources/correctFIDIID.R \
+Rscript ${DATADIR}/4_Resources/correctFIDIID.r \
 	data_filtered_Sanger.fam \
 	${RAWDATADIR}/${FILEPREFIX}.fam
 
 # Combine info files into a single file
 cp data_chr1_filtered_Sanger.info data_filtered_Sanger.info
 
-for i in {2..23}
+for i in $(seq 1 $chrNum)
 do
     if [ -f "data_chr${i}_filtered.bed" ]; then
 		awk ' NR>1 {print $0}' < data_chr${i}_filtered_Sanger.info | cat >> data_filtered_Sanger.info

@@ -40,7 +40,7 @@ cd ${PROCESSDIR}/CheckEthnicity || exit
 echo "Liftover the QCd data---------------------------------------------------------------------------"
 # liftover to GRCh38, since 1000G is based on the GRCh38
 # convert the hg17.bim file into hg19.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bim > QCd.BED
+awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 
 mapped_variant=$(wc -l Mapped.BED)
 total_variant=$(wc -l QCd.BED)
@@ -50,7 +50,7 @@ echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftover
 awk '{print $1}' Mapped.BED | sort -u
 awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
 
-${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd \
+${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
                 --update-map NewPosition.txt \
                 --make-bed \
                 --out ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38
@@ -85,11 +85,6 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_1kgIDs_forMerge \
                 --make-bed \
                 --out ${FILEPREFIX}_merged_1000G_forLD
 
-# # remove the high LD region (optional)
-# ${PLINK}/plink --bfile ${FILEPREFIX}_merged_1000G_forLD \
-#                 --exclude range ${HighLD} \
-#                 --make-bed \
-#                 --out ${FILEPREFIX}_mergedw1000G
 
 # PCA - 2mins
 echo "PCA the merged data---------------------------------------------------------------------------"

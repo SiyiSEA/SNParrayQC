@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #SBATCH --export=ALL # export all environment variables to the batch job.
 #SBATCH -p mrcq # submit to the serial queue
 #SBATCH --time=24:00:00 # Maximum wall time for the job.
@@ -86,8 +86,8 @@ module load BCFtools
 ## subset samples
 if [ $population == "EUR" ]
   then
-  ${PLINK}/plink --bfile${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed \
-                --keep ${PROCESSDIR}/${population}Samples.txt \
+  ${PLINK}/plink --bfile ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed \
+                --keep ${PROCESSDIR}/CheckRelatedness/${population}Samples.txt \
                 --maf 0.05 \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_${population}
@@ -102,11 +102,13 @@ else
 fi
 
 # convert the hg17.bim file into hg19.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population} > QCd.BED
+awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
 mapped_variant=$(wc -l Mapped.BED)
 total_variant=$(wc -l QCd.BED)
-echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
+echo "${mapped_variant}"
+echo "${total_variant}"
+# echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
 
 # check if you have althernative chr
 awk '{print $1}' Mapped.BED | sort -u
@@ -141,22 +143,30 @@ fi
 # sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
 # sed -i '/--real-ref-alleles/d' Run-plink.sh
 # sh Run-plink.sh
-# ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated \
-#           --real-ref-alleles \
-#           --make-bed \
-#           --out ${FILEPREFIX}_QCd_${population}_hg19-updated_temp
-# ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated_temp \
-#           --real-ref-alleles \
-#           --recode vcf \
-#           --out ${FILEPREFIX}_QCd_${population}_hg19-updated_final
-
-
-# bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated_final.vcf -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
-
 sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
-for file in *.vcf; do vcf-sort ${file} | bgzip -c > ${file}.gz;done
-ls ${FILEPREFIX}_QCd_${population}_hg19-updated-chr*.vcf.gz > list_vsf.txt
-bcftools concat -f list_vsf.txt -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19.vcf.gz
-bcftools index ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19.vcf.gz
+head -n 5 Run-plink.sh > Run-plink-Sanger.sh
+sh Run-plink-Sanger.sh
+${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated \
+          --real-ref-alleles \
+          --make-bed \
+          --out ${FILEPREFIX}_QCd_${population}_hg19-updated_temp
+${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated_temp \
+          --real-ref-alleles \
+          --recode vcf \
+          --out ${FILEPREFIX}_QCd_${population}_hg19-updated_final
+rm TEMP*
+rm *temp*
 
-echo 'done 4_formatForImputationSanger.sh'
+bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated_final.vcf -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
+bcftools index ${RESULTSDIR}/06a/{FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
+
+
+# not works
+# sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
+# sh Run-plink.sh
+# for file in *.vcf; do vcf-sort ${file} | bgzip -c > ${file}.gz;done
+# ls ${FILEPREFIX}_QCd_${population}_hg19-updated-chr*.vcf.gz > list_vsf.txt
+# bcftools concat -f list_vsf.txt -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19.vcf.gz
+# bcftools index ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19.vcf.gz
+
+echo 'done 06a_formatForImputationSanger.sh'

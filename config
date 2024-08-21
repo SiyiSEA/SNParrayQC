@@ -29,6 +29,7 @@ export LIFTOVER=/lustre/home/sww208/Software/liftOver
 ## data variables
 GenomeBuild="hg18"
 LiftChain="${RESOURCEDIR}/LiftOverTools/hg18ToHg38.over.chain.gz"
+LiftChainHg19="${RESOURCEDIR}/LiftOverTools/hg18ToHg19.over.chain.gz"
 
 ## 1000G
 Ref1000G=${KGG}/1000G_gr38_maffilt

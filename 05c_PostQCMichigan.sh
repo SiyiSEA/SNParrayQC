@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #SBATCH --export=ALL # export all environment variables to the batch job.
 #SBATCH -p mrcq # submit to the serial queue
 #SBATCH --time=24:00:00 # Maximum wall time for the job.
@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/PostQCMichigan.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05c_PostQCMichigan.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05c_PostQCMichigan.e
 #SBATCH --job-name=PostQCMichigan
 
 
@@ -32,10 +32,13 @@
 ## OUTPUT
 # data_filtered_Michigan.bim, data_filtered_Michigan.bed, data_filtered_Michigan.fam data_filtered_Michigan.info
 
+
+source ./config
+touch "$logfile_05c"
+exec > >(tee "$logfile_05c") 2>&1
 module purge
 module load R/4.2.1-foss-2022a
-# module load p7zip
-source ./config
+module load p7zip
 
 # function for unzip all the zip file
 un7zip () {
@@ -44,11 +47,20 @@ un7zip () {
 		7z x -p"${passcode}" ./chr_$chr.zip;
 		gzip -d chr${chr}.info.gz
 	done
-	7z x -p"${passcode}" ./chr_X.zip
-	gzip -d chrX.info.gz
-	mv chrX.dose.vcf.gz chr23.dose.vcf.gz
-	mv chrX.info chr23.info
+	if [ -s chr_X.zip ]
+	then
+		7z x -p"${passcode}" ./chr_X.zip
+		gzip -d chrX.info.gz
+		mv chrX.dose.vcf.gz chr23.dose.vcf.gz
+		mv chrX.info chr23.info
+	else
+		echo "Warning: There is no chrX."
+	fi
+
 }
+
+echo 'checking the if the download files are complete-------------------------'
+md5sum -c results.md5
 
 echo "checking the arguments--------------------------------------------------"
 cd ${IMPUTEDIR} || exit
@@ -77,12 +89,21 @@ else
 		un7zip ${passcode}
 fi
 
+
 echo 'runing PostQC for for imputed data from Michigan------------------------'
 
-# chr23 will fail on --make-pgen if there is no sex info
-awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
+if [ -s chr_X.zip ]
+then
+	chrNum=23
+	# chr23 will fail on --make-pgen if there is no sex info
+	awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
+else
+	chrNum=22
+	echo "Warnning: There is no SEX CHR!!!!!!!!!!!!!!!!!!!!!!!!"
+fi
 
-for i in {1..23}
+
+for i in $(seq 1 $chrNum)
 do
 	# convert the vcf.gz into pgen formats
 	if [[ $i -eq 23  && $panel == "1000G" ]]; 
@@ -113,25 +134,17 @@ do
 			  --maf 0.01 \
 			  --hwe 1e-5 \
 			  --make-pgen \
-			  --out data_chr${i}_filtered_temp2\
+			  --out data_chr${i}_filtered_temp2 \
 			  --keep-allele-order
 
-	if [[ $i -eq 23 && $panel == "1000G" ]]; 
-	then
-		# Remove duplicate variants
-		${PLINK2} --pfile data_chr${i}_filtered_temp2 \
-				--rm-dup exclude-mismatch \
-				--make-pgen \
-				--out data_chr${i}_filtered \
-				--keep-allele-order
-	else 
-		# Remove duplicate variants
-		${PLINK2} --pfile data_chr${i}_filtered_temp2 \
-				--rm-dup exclude-mismatch \
-				--make-pgen \
-				--out data_chr${i}_filtered \
-				--keep-allele-order
-	fi
+
+	# Remove duplicate variants
+	${PLINK2} --pfile data_chr${i}_filtered_temp2 \
+			--rm-dup exclude-mismatch \
+			--make-pgen \
+			--out data_chr${i}_filtered \
+			--keep-allele-order
+
 
 	# Convert `pvar/pgen/psam` to `bim/bed/fam` format
 	${PLINK2} --pfile data_chr${i}_filtered \
@@ -148,9 +161,9 @@ done
 echo "Merge--------------------------------------------------"
 rm -f mergefile.txt
 touch mergefile.txt
-for i in {2..23}
+for i in $(seq 2 $chrNum)
 do 
-	if [ -f "data_chr${i}_filtered.bed" ]; then
+	if [ -s "data_chr${i}_filtered.bed" ]; then
 		echo "data_chr${i}_filtered" >> mergefile.txt
 	fi
 done
@@ -175,22 +188,23 @@ cp data_filtered_Michigan.fam data_filtered_Michigan.fam.orig
 awk '{print $2,$2,$3,$4,$5,$6}' < data_filtered_Michigan.fam.orig > data_filtered_Michigan.fam
 
 # correct the FID and IID for fam file
-Rscript ${DATADIR}/4_Resources/correctFIDIID.R \
+Rscript ${DATADIR}/4_Resources/correctFIDIID.r \
 	data_filtered_Michigan.fam \
 	${RAWDATADIR}/${FILEPREFIX}.fam
 
 # Combine info files into a single file
 cp data_chr1_filtered.info data_filtered_Michigan.info
 
-for i in {2..23}
+for i in $(seq 1 $chrNum)
 do
-	if [ -f "data_chr${i}_filtered.bed" ]; then
+	if [ -s "data_chr${i}_filtered.bed" ]; then
 		awk ' NR>1 {print $0}' < data_chr${i}_filtered.info | cat >> data_filtered_Michigan.info
 	fi
 done
 
 # clean up redundant files
-rm data_chr*_filtered_temp* data_chr*_filtered.p*
+rm data_chr*_filtered_temp* 
+# rm data_chr*_filtered.p*
 rm data_filtered_Michigan.fam.orig
 rm data_filtered_Michigan_temp* oldidchrX.txt newidchr23.txt updatechrid.txt
 rm data_chr*_filtered.info

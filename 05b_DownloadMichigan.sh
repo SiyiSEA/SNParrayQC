@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #SBATCH --export=ALL # export all environment variables to the batch job.
 #SBATCH -p mrcq # submit to the serial queue
 #SBATCH --time=24:00:00 # Maximum wall time for the job.
@@ -6,106 +6,66 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05a_downloadMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05a_downloadMichigan.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05b_downloadMichigan.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05b_downloadMichigan.e
 #SBATCH --job-name=downloadMichigan
 
 source ./config
 
-cd ${IMPUTEDIR}
-
-# mkdir -p ImputationOutputMichigan
-
-# cd ImputationOutputMichigan || exit
+cd ${IMPUTEDIR}/ImputationOutputMichiganHRC || exit
 
 # data for HRC
-# wget https://imputationserver.sph.umich.edu/share/results/0638a99edaa602e79d6aaab2d73e4963e2492a55dae76b024d2233295f90bc4a/chr_1.zip
-# wget https://imputationserver.sph.umich.edu/share/results/f1af468bb753a08942e74a01dc49ea02e83555a6e684af6bdd165d4179d5460c/chr_10.zip
-# wget https://imputationserver.sph.umich.edu/share/results/e19e8259c34de11a49778e3bacc647b178d62e8c725454657d3af084e513f339/chr_11.zip
-# wget https://imputationserver.sph.umich.edu/share/results/0bf7beb2b032591bcbf64f189e20ef2b34afc51dc0ff4ce6c82b9128a537e7ce/chr_12.zip
-# wget https://imputationserver.sph.umich.edu/share/results/27da8c2b272ddce586cc1d2cc4b5d7d5428e84d3527177315de82d449c838752/chr_13.zip
-# wget https://imputationserver.sph.umich.edu/share/results/cf8fb8d441d35e5039ecfd4f98babf7031ef616c1654db576be30e1bfe8b8960/chr_14.zip
-# wget https://imputationserver.sph.umich.edu/share/results/438639ffe82cf310e26321bc283e396b363ff0ecd707ab56e135b74a1546a57f/chr_15.zip
-# wget https://imputationserver.sph.umich.edu/share/results/f5d141f87e4b6495b1816bec03186234c702717f00b87949b636e35697ccc7b5/chr_16.zip
-# wget https://imputationserver.sph.umich.edu/share/results/ec09e4c064a405c3b507bf32673ddb9880caf871fb44ace4c68753d71d426241/chr_17.zip
-# wget https://imputationserver.sph.umich.edu/share/results/af4858003a46399f5dc6d3da4d3113b0d6449abd2a11dee9e811f63709d5b2cf/chr_18.zip
-# wget https://imputationserver.sph.umich.edu/share/results/41978b7ff5f49ff35f0d53602b1fac8cb2894fb1fa46766555d31791164c7f9d/chr_19.zip
-# wget https://imputationserver.sph.umich.edu/share/results/e1d08c440c4c69c81bd8d55cbecd36945bed5a8542876a455ff4b203649aee1f/chr_2.zip
-# wget https://imputationserver.sph.umich.edu/share/results/a2148a49ffd92332dbb691d602f9ff7b3676345fdf50c9b4afef4415ee3cf18d/chr_20.zip
-# wget https://imputationserver.sph.umich.edu/share/results/e92f9707324e52c2764647cb264f7f200ab22a0cae1f517559bcfe154420b77b/chr_21.zip
-# wget https://imputationserver.sph.umich.edu/share/results/055d22d27ec1e571c228e698968d6253ce37b4299761ecc281ae61a8b65bf9e9/chr_22.zip
-# wget https://imputationserver.sph.umich.edu/share/results/67323f5ecb7bd72a0b2ce008cefc67d9115a61e942b14991cd1e913326a00d1e/chr_3.zip
-# wget https://imputationserver.sph.umich.edu/share/results/4e1ecd8c848f4c49d7a10c6c96d47ae1c4c0ce42949bf23b177eb4adf659e502/chr_4.zip
-# wget https://imputationserver.sph.umich.edu/share/results/a87dcea79a44ae0f11b69d224f7a9cc99d81eb41ae0c49fe8f560ef2c150ce68/chr_5.zip
-# wget https://imputationserver.sph.umich.edu/share/results/e54245cbf9f8d8a2318ca4826ffadcd076ecc856128c09876427bc25ffc6e612/chr_6.zip
-# wget https://imputationserver.sph.umich.edu/share/results/c18b56912e2e654bf931746f350f44a37579d6a8e064b680874e80e7980707ce/chr_7.zip
-# wget https://imputationserver.sph.umich.edu/share/results/eab3283eb5c35380f96d795fe7707deb7f45daa61ddf1e11cc7ed54c48883816/chr_8.zip
-# wget https://imputationserver.sph.umich.edu/share/results/767287be5e1ebf8daddc8971ff20d47177ea8bcc4c631904cf0b1871c6205485/chr_9.zip
-# wget https://imputationserver.sph.umich.edu/share/results/7f320cfc81546f3ef167515cdd489c1aef83fe992079c57eabd310d91452664e/chr_X.zip
-# wget https://imputationserver.sph.umich.edu/share/results/01912dbba25adf85b8f30cf1b3a98684094e4f59db9f043a46c60645eca8aadb/results.md5
+wget https://imputationserver.sph.umich.edu/share/results/99a390ebdb128fd6d833aa7a97ecd743e9ca36b79edfc98e5d442d278d0cad32/chr_1.zip
+wget https://imputationserver.sph.umich.edu/share/results/4d332391af74cc5b26ba3514903ea44b34a97135c5d004d2d8a6e331734e56c2/chr_10.zip
+wget https://imputationserver.sph.umich.edu/share/results/212ffb04b24129c0af84a5076150faed35427885ad1d1e8c0a9c261a16b89fbf/chr_11.zip
+wget https://imputationserver.sph.umich.edu/share/results/d0af5b04d80cecad4ed8339a0f20f8c8abd0419137a290ad264bb4b56838d061/chr_12.zip
+wget https://imputationserver.sph.umich.edu/share/results/c32e69f3f28b956b522daf8f1d504ce48215f9e5dd252c426911a17bc312a738/chr_13.zip
+wget https://imputationserver.sph.umich.edu/share/results/a4a387b538de3f6c51ff8eadc4e541496d744d06a7156ef1f6c6f14abb030a32/chr_14.zip
+wget https://imputationserver.sph.umich.edu/share/results/465736e9a93d41d8316682d5adef3e97dc599ee56aeb0539553d93fa2aad23eb/chr_15.zip
+wget https://imputationserver.sph.umich.edu/share/results/7800aee7e236c1e08fe73354a5d1cde37c860c8188d7f250d60fcab14c34c196/chr_16.zip
+wget https://imputationserver.sph.umich.edu/share/results/d29253e3a5a5d53f8fc0a93c4c66204fdf93e082065a994ded9c32c69dacf82f/chr_17.zip
+wget https://imputationserver.sph.umich.edu/share/results/18f8cd3d12494d5fb33ca9885a971a237df1af95359f3bb5e0a9eb0d7679cf07/chr_18.zip
+wget https://imputationserver.sph.umich.edu/share/results/258e87871611f1ba56105e3863124efd549f064b0a6116b49d98ab05463ef637/chr_19.zip
+wget https://imputationserver.sph.umich.edu/share/results/9802e0960082268d91705f69ae92dfbf7060d074df1edd27068dd563181d8898/chr_2.zip
+wget https://imputationserver.sph.umich.edu/share/results/78852b730be61991c7413e57f0f7743e08244eb3431a1119a64ee67919b07df5/chr_20.zip
+wget https://imputationserver.sph.umich.edu/share/results/fa27f540a4eae714c3fc7d835f9ae781764182888fae2a0ce321b65fca470e1e/chr_21.zip
+wget https://imputationserver.sph.umich.edu/share/results/5d11e366eec60d58c71967fc62ad90fa20e0d1bf700e3ea0bfd5729727420746/chr_22.zip
+wget https://imputationserver.sph.umich.edu/share/results/1192defcef1134dba4b39392c43c69cb6c590c5de8ab2a03025775f8814e4479/chr_3.zip
+wget https://imputationserver.sph.umich.edu/share/results/90c5cf629492d4b46ce85099a47fb81ba66bd3f2b7046a640805f9b76d2a9aad/chr_4.zip
+wget https://imputationserver.sph.umich.edu/share/results/8f866b7b60bbc3d1c4a425fa3e099ccf60e1332fac4fce3ccd976f7f670ee4e8/chr_5.zip
+wget https://imputationserver.sph.umich.edu/share/results/57a23f7a9ebd27b36e2085c5f630d08271bb26158193df5578f7df7def3baead/chr_6.zip
+wget https://imputationserver.sph.umich.edu/share/results/3b81c54fae6323eaf4326b5badfce684f187c089b3ab6a5265d8e626a489bc40/chr_7.zip
+wget https://imputationserver.sph.umich.edu/share/results/24129eeb85e4b1e1ad49766bb41a9a96cf4e2a76905296735673a80c06658759/chr_8.zip
+wget https://imputationserver.sph.umich.edu/share/results/11350a6c393ee13030f20e9566d588378a1a268ef8de767f7d021169626dda5b/chr_9.zip
+wget https://imputationserver.sph.umich.edu/share/results/db529a3389c2037301f26647b29908dfc292ba1ee527e165d626ef42de809a71/results.md5
 
-# wget https://imputationserver.sph.umich.edu/share/results/c531e45dcc19411546d4376995fe6d1f72480dde9d65ca6715d6ced3788aaba1/qcreport.html
-# wget https://imputationserver.sph.umich.edu/share/results/f35cde9d64737484cc813f15e3c0824d8b16772e35f7a5fd2c5ab7efb8f596cb/chunks-excluded.txt
-# wget https://imputationserver.sph.umich.edu/share/results/61bf07c8720229f845bf20d514d69572c3092e4f58ad507995cd5b3bad530d34/snps-excluded.txt
+wget https://imputationserver.sph.umich.edu/share/results/e76c69ddce5fcc17d7ca40faf2fa92f064fc8c6aa35d7d1262c2a6239f86caec/chunks-excluded.txt
+wget https://imputationserver.sph.umich.edu/share/results/47e2333dfb905ff31693327a39c576ff6c8cd3301dd8e5a07e8c709fdbbb5359/snps-excluded.txt
+wget https://imputationserver.sph.umich.edu/share/results/7d8431d8eca62d99c158887b58db999e14f4c1c392deccb06ac0ef29cd2a66e2/qcreport.html
 
-# passcode: KwrP350XfATza
+wget https://imputationserver.sph.umich.edu/share/results/68ba95db8cbc68f9e5c5335c96ffa0e19b20d476b1431793751640c0f4abf15e/chr_1.log
+wget https://imputationserver.sph.umich.edu/share/results/85682148e88eea0787cf53a14daa70de5e0260a2c6fa855396124484ee7046cb/chr_10.log
+wget https://imputationserver.sph.umich.edu/share/results/e9dc3f49d64da0b67d411d251fc0119d769327417c0eab96d4b33216ebc30ab6/chr_11.log
+wget https://imputationserver.sph.umich.edu/share/results/6831b6630523957e6164fce8b65e82012c73734712704dc5513a84db9d5e3008/chr_12.log
+wget https://imputationserver.sph.umich.edu/share/results/228dc72eaf588459ed497435f99327303c521b6b58bf1546a3c6d7e29e823607/chr_13.log
+wget https://imputationserver.sph.umich.edu/share/results/d5ad16eae68df5ab02a40fa58c28ff23ba91a994e08559a66a19403f5fdf6a1a/chr_14.log
+wget https://imputationserver.sph.umich.edu/share/results/666043f81ade184ba73c611c83e41a053f3018aa4cb840137633899f09efc715/chr_15.log
+wget https://imputationserver.sph.umich.edu/share/results/c9add6266cd64e33503abee3a1685e90455db7ca71180a6e32e9496b274daa90/chr_16.log
+wget https://imputationserver.sph.umich.edu/share/results/2449639a0b68032c8dadd4c8dd9d558e855624f8a8bc63b16e0ee1e59f2dab33/chr_17.log
+wget https://imputationserver.sph.umich.edu/share/results/13a724fb282179e059b2344d88f7cff8e16a0ab9bde615083eae6b5f32b8dd50/chr_18.log
+wget https://imputationserver.sph.umich.edu/share/results/c300222cf04020a1655e71283f0394b8743974e5b69965701443c11bc27926eb/chr_19.log
+wget https://imputationserver.sph.umich.edu/share/results/c0faf5c9522ab7f2349181da6db54b4c7b34e8212318d14ff2e7bf6535c33e50/chr_2.log
+wget https://imputationserver.sph.umich.edu/share/results/30e0a842f1d52d711703de92b3b14788f675eeb31aeab2caa347f6edefa10e6c/chr_20.log
+wget https://imputationserver.sph.umich.edu/share/results/c9feb51c0af55a1a2e3c6d5d00a55509507288aa5781223c23d3e23cd2c04294/chr_21.log
+wget https://imputationserver.sph.umich.edu/share/results/0effbfab0e4b34f48b75602633d84cacd3e70f3d18064283955b2c379f0838df/chr_22.log
+wget https://imputationserver.sph.umich.edu/share/results/869da129878c683a8c86b21a98b254d028f9e9746149e55c698fb2a1bee70efd/chr_3.log
+wget https://imputationserver.sph.umich.edu/share/results/4b5bf5099f2e797b92bef71aee1e8e0f2aaaf168decae7e48bbb0452e3555cab/chr_4.log
+wget https://imputationserver.sph.umich.edu/share/results/ec0c259a0bc5dd9f8718acde8bc1f90a147f76bf9fee70e7e6ccee0442642eb3/chr_5.log
+wget https://imputationserver.sph.umich.edu/share/results/b020d39ec691d49c9fd02df60308285201e737e991b06d5ff72c5a090407ed18/chr_6.log
+wget https://imputationserver.sph.umich.edu/share/results/8f04f0b6262fcd9dae6a680a024a95a586441c7540cf597e0e11a3b12f878e1f/chr_7.log
+wget https://imputationserver.sph.umich.edu/share/results/b7d9532e7046bc3405aed577170546c81a40f51bde103db5e09c7895ad94ced7/chr_8.log
+wget https://imputationserver.sph.umich.edu/share/results/62228ebd1edba5c6b60681dad4d841f93f7097a7de5a8d82a16341e9e12d1fb2/chr_9.log
 
-# 2024 May
-mkdir -p ImputationOutputMichigan1000G
 
-cd ImputationOutputMichigan1000G || exit
+# passcode: Sz7bgjIH0bPEkK
 
-# wget https://imputationserver.sph.umich.edu/share/results/318b1c08c6457a2ec324902e77cd0ab77332797a574f05f6fe42f8ad11714767/qcreport.html
-# wget https://imputationserver.sph.umich.edu/share/results/50b64013ba06fb87c492254d2417eaf9b151476a23b9df5750f9bd23a1e7a28d/chunks-excluded.txt
-
-
-# wget https://imputationserver.sph.umich.edu/share/results/24823c176ba554a88b0d97dd0d9b0201c0223be9ef25e80e7a905c14c62f8ac6/chr_1.zip
-# wget https://imputationserver.sph.umich.edu/share/results/87aab286807aaa25e7c2eb207cead169f9d8853e71fc00ea44f21fbfcb410a42/chr_10.zip
-# wget https://imputationserver.sph.umich.edu/share/results/797cc9ae1e925d8e8f9d08cadb28daf1944a3b9212722943a767126052be5093/chr_11.zip
-# wget https://imputationserver.sph.umich.edu/share/results/d1cf7368cf119fb6675f1abf7f9d6c67048223e58034cb4b947a6568137136c8/chr_12.zip
-# wget https://imputationserver.sph.umich.edu/share/results/32b9ca349b08bbffaf7c1de386aeefbbbdea7764f24c6ffed6985beba7b675b8/chr_13.zip
-# wget https://imputationserver.sph.umich.edu/share/results/87b4eece1e179077019c53e93d928d1cbc0bafd331b47d0b8585427a57308ccc/chr_14.zip
-# wget https://imputationserver.sph.umich.edu/share/results/974078e8d2d9fbad89a30b46dda1e4843ed9a1adda27ff4075322fa76a3df199/chr_15.zip
-# wget https://imputationserver.sph.umich.edu/share/results/fc96300ca7b94fb669004d32efca738b5f89db1f85f14cffc34835bb64ce4e68/chr_16.zip
-# wget https://imputationserver.sph.umich.edu/share/results/0ee1ccd26b5ec60c1709b0cf8bea6fcf4bd0da2620d939e9538018b785386d41/chr_17.zip
-# wget https://imputationserver.sph.umich.edu/share/results/3ca5d9bcf31bedab74e361b2deb0785011c657f25a4828856b31dc7c39caf6e9/chr_18.zip
-# wget https://imputationserver.sph.umich.edu/share/results/d3977ce809ad826f97f359f0a19fbc7d26443232512c69d15e3a6538c7277da5/chr_19.zip
-# wget https://imputationserver.sph.umich.edu/share/results/74787751acf203e396f2db083532837359060f926f1c306a701448e1002fd653/chr_2.zip
-# wget https://imputationserver.sph.umich.edu/share/results/d4c5d1765e2c3e77d1ba9c0532abab02eb2ff71dddc1f1bca49b498f9b090fc1/chr_20.zip
-# wget https://imputationserver.sph.umich.edu/share/results/3859da9d03140bcea9459a5002458a6f42823b6d6e55b07bc73c97ad8a183f51/chr_21.zip
-# wget https://imputationserver.sph.umich.edu/share/results/54c852267a7ee3e3efe3ecb2bf540721ef116672939cd6b0602be5339a203775/chr_22.zip
-# wget https://imputationserver.sph.umich.edu/share/results/83ef3fc4576548bed60a40843f5879048f7241923b50158ca5428e75c99fc11e/chr_3.zip
-# wget https://imputationserver.sph.umich.edu/share/results/b9de74abd832c1d8067d5c5535d336b8734332465d367f8dbd53731e5907d0b6/chr_4.zip
-# wget https://imputationserver.sph.umich.edu/share/results/df6664c1582ef38ea47e67236948c459362b01b4d333b9e03278b1ae3ab4fc6d/chr_5.zip
-# wget https://imputationserver.sph.umich.edu/share/results/a110d579828534308e389bb8d7eb568815e97d9c2c0bab827335373cbb4cd2cf/chr_6.zip
-# wget https://imputationserver.sph.umich.edu/share/results/e389b344e9420f5be2ae99d7addb3b4c71663f94f8a179105683702d66a5413f/chr_7.zip
-# wget https://imputationserver.sph.umich.edu/share/results/82ad27526bd95f4738613a5c2a2bf2668c2a8713d2298a548a0e628a9f55e8a2/chr_8.zip
-# wget https://imputationserver.sph.umich.edu/share/results/272162651f2b8cfdba858817210bb7e3629ea26efdd7ab4b02fee85d6530caa8/chr_9.zip
-# wget https://imputationserver.sph.umich.edu/share/results/afbd73157c8a17b7bef127563ec211667c156e829b354e21dde55bd2fffec329/chr_X.zip
-# wget https://imputationserver.sph.umich.edu/share/results/41c9d8437fcae742754484d693e22c3b98c68919f3abbc38e9f4f556a2504fd1/results.md5
-
-# wget https://imputationserver.sph.umich.edu/share/results/0c78758335c9b108a282cf8053a88eeece4139b48722f107b0cfda42dc1304e9/chr_1.log
-# wget https://imputationserver.sph.umich.edu/share/results/f6fc3db750bde4eaa43c2b059744fd4117ec39cf21782139c0486976cc7cdca4/chr_10.log
-# wget https://imputationserver.sph.umich.edu/share/results/41c0b219484d96f0fcd0b7cb4db2ce3fea890f2eebb48ca10e4d5430f3d73f0b/chr_11.log
-# wget https://imputationserver.sph.umich.edu/share/results/44ae6b093663f3e557a6db3a102508b13578e26fa64eb8103668842823fb7038/chr_12.log
-# wget https://imputationserver.sph.umich.edu/share/results/341c199864e832950e296b55fbe7df35d56cef12e003b7ec792fbae996cf5a48/chr_13.log
-# wget https://imputationserver.sph.umich.edu/share/results/965ecf48e1db98e48b36d64863b1638d0ce362e1b9118ceca36ba6161b716256/chr_14.log
-# wget https://imputationserver.sph.umich.edu/share/results/10e7df924528df2cf14705b6081ea4b1e7fd625039a1d08e796211c4af93af98/chr_15.log
-# wget https://imputationserver.sph.umich.edu/share/results/15cc784e7d4e5c075a8b2ef89fc3fe9914c7abbdfbde37c40c47c8c1e0796e2b/chr_16.log
-# wget https://imputationserver.sph.umich.edu/share/results/aefb2983a1e4a8e18bb6dc9f2e550def7fa092d4b3c3fefe30b5440670fefac3/chr_17.log
-# wget https://imputationserver.sph.umich.edu/share/results/b8f56b51b44a51a5aec29386fa4f6b12963d6d0f8d7c1534bea33b4541296fc3/chr_18.log
-# wget https://imputationserver.sph.umich.edu/share/results/50dcefe1cd2a246eea79852850262cdf277fd50a555d52cd3ba4cd6956082bc5/chr_19.log
-# wget https://imputationserver.sph.umich.edu/share/results/9a51739d693c83134d575b356b0ab9bac87ec4c56e6e46a11d04a3e7c430660b/chr_2.log
-# wget https://imputationserver.sph.umich.edu/share/results/245f42f82653c182584fe1baba5803ab247083bbc0a8a47abd7a5d9cc94038aa/chr_20.log
-# wget https://imputationserver.sph.umich.edu/share/results/d60ca71b03e82c93e850af99a868de6911bd406d8da5214cdb4e03fd2ac83f2c/chr_21.log
-# wget https://imputationserver.sph.umich.edu/share/results/b4fa89d832074e484ff43b4da492f530b52cd073bad7121e500a4f4ee3e60d2c/chr_22.log
-# wget https://imputationserver.sph.umich.edu/share/results/39f6c5786aeb7875b0795071f8adba92d501f6ea60a0f16d2f35f85857e6edf4/chr_3.log
-# wget https://imputationserver.sph.umich.edu/share/results/9514f4282c03023f779b2730c7f660b0ca2f4651c5e3cbc8b8be9d7c75b49976/chr_4.log
-# wget https://imputationserver.sph.umich.edu/share/results/2e0cbe5b02aabc7ae079228463acacee392d2dc58b77c352bf65681ff573d692/chr_5.log
-# wget https://imputationserver.sph.umich.edu/share/results/e775b9c36c40d4e54c176814be1385d335e07eb5ceb308ded654808c5044dbe1/chr_6.log
-# wget https://imputationserver.sph.umich.edu/share/results/b47da7dcff0727650f1d12be1ae8f3804ef5e2478e71d4d2f037cf7f3f0ea603/chr_7.log
-# wget https://imputationserver.sph.umich.edu/share/results/630b658d20e894dacac5f2145b8eea22fdceca680be53e9794568b84d5e0d985/chr_8.log
-# wget https://imputationserver.sph.umich.edu/share/results/f61e612ececb59cafd549c0bb8e2f4ddb8319237ad952e03ce10153715df67ad/chr_9.log
-# wget https://imputationserver.sph.umich.edu/share/results/2cf1cea30e029b7f21faf38e7ad3a8ced8186dbc912bd29c0686da6c28004f49/chr_X.nonPAR.log
-wget https://imputationserver.sph.umich.edu/share/results/74787751acf203e396f2db083532837359060f926f1c306a701448e1002fd653/chr_2.zip
-# the password for the imputation results is: 7.epaVdlLA9GuS
