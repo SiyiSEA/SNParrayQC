@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #SBATCH --export=ALL # export all environment variables to the batch job.
 #SBATCH -p mrcq # submit to the serial queue
 #SBATCH --time=24:00:00 # Maximum wall time for the job.
@@ -36,14 +36,13 @@
 
 
 source ./config
-echo 'runing 07_AssembleData.sh'
+touch "$logfile_07"
+exec > >(tee "$logfile_07") 2>&1
 module load R/4.2.1-foss-2022a
 
 echo "Assemble QCd data----------------------------------------------"
-# assemble_QC_data 
-# mkdir -p ${SCRIPTDIR}/3_Results/QCdData
-# cd ${PROCESSDIR} || exit
-# cp ${FILEPREFIX}_QCd.b* ${FILEPREFIX}_QCd.fam ${SCRIPTDIR}/3_Results/QCdData/.
+# cd ${PROCESSDIR}/QCData || exit
+# cp ${FILEPREFIX}_QCd_trimmed.b* ${FILEPREFIX}_QCd_trimmed.fam ${SCRIPTDIR}/3_Results/07/.
 
 
 echo "Assemble imputed data-------------------------------------------"
@@ -52,14 +51,19 @@ assemble_imputed_data () {
 	panel=$2
 
 	echo "Assembling imputed data from ${server} for ${panel}"
-	cd ${SCRIPTDIR}/3_Results/ || exit
-	mkdir -p ${SCRIPTDIR}/3_Results/ImputedData${server}${panel}
 	cd ${IMPUTEDIR}/ImputationOutput${server}${panel} || exit
 
 	rm -f mergedosefile.txt
 	touch mergedosefile.txt
 
-	for i in {1..23}
+	if [ -s chr_X.zip ]
+	then
+		chrNum=23
+	else
+		chrNum=22
+	fi
+
+	for i in $(seq 1 $chrNum)
 	do 
 	
 		if [[ $panel = "1000G" && $i -eq 23 ]]
@@ -96,19 +100,19 @@ assemble_imputed_data () {
 	cp data_dose_${panel}_${server}.fam data_dose_${panel}_${server}.fam.orig
 	awk '{print $2,$2,$3,$4,$5,$6}' < data_dose_${panel}_${server}.fam.orig > data_dose_${panel}_${server}.fam
 
-	Rscript ${DATADIR}/4_Resources/correctFIDIID.R \
+	Rscript ${DATADIR}/4_Resources/correctFIDIID.r \
 		data_dose_${panel}_${server}.fam \
 		${RAWDATADIR}/${FILEPREFIX}.fam
 
 	# remove reducdecy data
 	rm data_dose_*temp* data_dose_${panel}_${server}.fam.orig mergedosefile.txt
 	rm oldidchrX.txt newidchr23.txt updatechrid.txt
-	cp data_dose_${panel}_${server}.b* data_dose_${panel}_${server}.fam  ${SCRIPTDIR}/3_Results/ImputedData${server}${panel}/.
+	cp data_dose_${panel}_${server}.b* data_dose_${panel}_${server}.fam  ${SCRIPTDIR}/3_Results/07/.
 }
 
 #pass
-# assemble_imputed_data Michigan HRC
-# assemble_imputed_data Sanger HRC
+assemble_imputed_data Michigan HRC
+assemble_imputed_data Sanger HRC
 # assemble_imputed_data Michigan 1000G
 # assemble_imputed_data Sanger 1000G
 
@@ -117,19 +121,18 @@ assemble_imputed_postQC_data () {
 	server=$1
 	panel=$2
 	echo "Assembling Filtereed Data from ${server} for ${panel}"
-	mkdir -p ${SCRIPTDIR}/3_Results/FilterData${server}${panel}
 	cd ${IMPUTEDIR}/ImputationOutput${server}${panel} || exit
 	pwd
 	cp data_filtered_${server}.bim  data_filtered_${panel}_${server}.bim 
 	cp data_filtered_${server}.bed  data_filtered_${panel}_${server}.bed
 	cp data_filtered_${server}.fam  data_filtered_${panel}_${server}.fam
 	cp data_filtered_${server}.info  data_filtered_${panel}_${server}.info
-	mv data_filtered_${panel}_${server}* ${SCRIPTDIR}/3_Results/FilterData${server}${panel}/.
+	mv data_filtered_${panel}_${server}* ${SCRIPTDIR}/3_Results/07/.
 }
 
 # pass
-# assemble_imputed_postQC_data Michigan HRC
-# assemble_imputed_postQC_data Sanger HRC
+assemble_imputed_postQC_data Michigan HRC
+assemble_imputed_postQC_data Sanger HRC
 # assemble_imputed_postQC_data Michigan 1000G
 # assemble_imputed_postQC_data Sanger 1000G
 
@@ -140,16 +143,41 @@ plot_imputed_postQC_data () {
 	server_2=Sanger
 	panel=$1
 
-	echo "Plotting the density plots for ${server_1}${panel} and ${server_2}${panel}"
-	Rscript ${DATADIR}/4_Resources/plot_imputation_quality.R \
-		"${DATADIR}/3_Results/" \
-		"./FilterData${server_1}${panel}/data_filtered_${panel}_${server_1}.info" \
-		"./FilterData${server_2}${panel}/data_filtered_${panel}_${server_2}.info" \
-		${panel}
+	if [ -s ${SCRIPTDIR}/3_Results/07/data_filtered_${panel}_${server_1}.info ]
+	then
+		if [ -s ${SCRIPTDIR}/3_Results/07/data_filtered_${panel}_${server_2}.info ]
+		then
+			echo "Plotting the density plots for ${server_1}${panel} and ${server_2}${panel}"
+			Rscript ${DATADIR}/4_Resources/plot_imputation_quality.r \
+				"${SCRIPTDIR}/3_Results/07/" \
+				"./data_filtered_${panel}_${server_1}.info" \
+				"./data_filtered_${panel}_${server_2}.info" \
+				${panel}
+		else
+			echo "Plotting the density plots for ${server_1}${panel}"
+			Rscript ${DATADIR}/4_Resources/plot_imputation_quality.r \
+				"${SCRIPTDIR}/3_Results/07/" \
+				"./data_filtered_${panel}_${server_1}.info" \
+				"NULL" \
+				${panel}
+		fi
+	else
+		if [ -s ${SCRIPTDIR}/3_Results/07/data_filtered_${panel}_${server_2}.info ]
+		then
+			echo "Plotting the density plots for ${server_1}${panel} and ${server_2}${panel}"
+			Rscript ${DATADIR}/4_Resources/plot_imputation_quality.r \
+				"${SCRIPTDIR}/3_Results/07/" \
+				"NULL" \
+				"./data_filtered_${panel}_${server_2}.info" \
+				${panel}
+		else
+			echo "Error: There is no valid file of info for plotting."
+		fi
+	fi
 
 }
 
-# plot_imputed_postQC_data HRC 
+plot_imputed_postQC_data HRC 
 # plot_imputed_postQC_data 1000G
 
 
@@ -187,22 +215,15 @@ PCA_count_variant () {
 }
 
 
-# cd ${SCRIPTDIR}/3_Results || exit
-# mkdir -p PCAVariants
-# cd PCAVariants || exit
-# rm -f VariantsCount.txt
-# touch VariantsCount.txt
+cd ${SCRIPTDIR}/3_Results/PCAVariants || exit
+rm -f VariantsCount.txt
+touch VariantsCount.txt
 
 # # takes an hour
 # PCA_count_variant ${RAWDATADIR} ${FILEPREFIX}
 # PCA_count_variant ${SCRIPTDIR}/3_Results/QCdData ${FILEPREFIX}_QCd
 # PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataSangerHRC data_dose_HRC_Sanger
-# PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataMichiganHRC data_dose_HRC_Michigan
-# PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataSanger1000G data_dose_1000G_Sanger
-# PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataMichigan1000G data_dose_1000G_Michigan
-# PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataMichigan1000G data_filtered_1000G_Michigan
-# PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSanger1000G data_filtered_1000G_Sanger
-# PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataMichiganHRC data_filtered_HRC_Michigan
-# PCA_count_variant ${SCRIPTDIR}/3_Results/FilterDataSangerHRC data_filtered_HRC_Sanger
-
-echo "Relationship between the PCs between QCd data and PostQC data-----------------------------"
+PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_dose_HRC_Michigan
+PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_filtered_HRC_Michigan
+PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_dose_HRC_Sanger
+PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_filtered_HRC_Sanger

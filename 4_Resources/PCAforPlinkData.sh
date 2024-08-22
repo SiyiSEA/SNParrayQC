@@ -5,9 +5,11 @@ PCAforPlinkData () {
     prefix=$2
     nSD=$3
 
+    # remove the high LD region (optional)
     ${PLINK}/plink \
         --bfile ${bfile} \
         --indep 50 5 1.5 \
+        --exclude ${HighLD} \
         --out ${RESULTSDIR}/PCAVariants/${prefix}.ld
 
     ${PLINK}/plink \

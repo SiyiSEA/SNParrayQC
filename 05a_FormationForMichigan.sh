@@ -6,8 +6,8 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/ImputationFormatMichigen.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/ImputationFormatMichigen.e
+#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/ImputationFormatMichigen.o
+#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/ImputationFormatMichigen.e
 #SBATCH --job-name=IFM
 
 
@@ -82,23 +82,23 @@ module load VCFtools
 ## subset samples
 if [ $population == "EUR" ]
   then
-  ${PLINK}/plink --bfile${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed \
-                --keep ${PROCESSDIR}/${population}Samples.txt \
+  ${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
+                --keep ${PROCESSDIR}/CheckRelatedness/${population}Samples.txt \
                 --maf 0.05 \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_${population}
 elif [ $population == "ALL" ]
   then
-    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bim ${FILEPREFIX}_QCd_${population}.bim
-  	cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bed ${FILEPREFIX}_QCd_${population}.bed
-  	cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.fam ${FILEPREFIX}_QCd_${population}.fam
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim ${FILEPREFIX}_QCd_${population}.bim
+  	cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bed ${FILEPREFIX}_QCd_${population}.bed
+  	cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ${FILEPREFIX}_QCd_${population}.fam
 else
   echo "Please input either EUR or ALL as the first arg!"
   exit 1
 fi
 
 # convert the hg17.bim file into hg19.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population} > QCd.BED
+awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
 mapped_variant=$(wc -l Mapped.BED)
 total_variant=$(wc -l QCd.BED)
