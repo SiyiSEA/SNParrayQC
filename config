@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 module load R/4.2.1-foss-2022a
 ## data paths
-export FILEPREFIX=scz_ab_eur ## filename of initial binary plink files that will be appended to all other output
-export DATADIR=/lustre/home/sww208/QC/SNParrayQC ## project folder
+export FILEPREFIX=scz_ab_eur_665_numericFIDIID ## filename of initial binary plink files that will be appended to all other output
+export DATADIR=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur ## data folder
 export RAWDATADIR=${DATADIR}/1_RawData # where plink files should be found
 export PROCESSDIR=${DATADIR}/2_ProcessedData
 export METADIR=${DATADIR}/2_ProcessedData/MetaData
 export IMPUTEDIR=${DATADIR}/2_ProcessedData/ImputedData
 export CNVDIR=${DATADIR}/2_ProcessedData/CNVs
 export RESULTSDIR=${DATADIR}/3_Results
-export RESOURCEDIR=${DATADIR}/4_Resources
 export JOBSDIR=${DATADIR}/5_JobReports
 
 ## Reference data filepaths
@@ -19,6 +18,7 @@ export GSAREF=/lustre/projects/Research_Project-MRC190311/references/GSAArray/ #
 
 ## Software/script filepaths (where not on the command line)
 export SCRIPTDIR=/lustre/home/sww208/QC/SNParrayQC
+export RESOURCEDIR=${SCRIPTDIR}/4_Resources
 export PENNCNVPATH=/lustre/projects/Research_Project-MRC190311/software/PennCNV
 export KINGPATH=/lustre/projects/Research_Project-MRC190311/software
 export PLINK=/lustre/projects/Research_Project-MRC190311/software/plink1.90
@@ -35,4 +35,4 @@ LiftChainHg19="${RESOURCEDIR}/LiftOverTools/hg18ToHg19.over.chain.gz"
 Ref1000G=${KGG}/1000G_gr38_maffilt
 HighLD=${RESOURCEDIR}/GRCh38_high_LD.txt
 
-source ${DATADIR}/4_Resources/preparation
+source ${SCRIPTDIR}/4_Resources/preparation

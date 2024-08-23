@@ -20,31 +20,33 @@ exec > >(tee "$logfile_02") 2>&1
 
 cd ${PROCESSDIR}/CheckOutliers || exit
 
-cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd* ${PROCESSDIR}/CheckOutliers/.
+cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed* ${PROCESSDIR}/CheckOutliers/.
 
-S_threshold="0.6"
-homo_threshold="5.4"
+# S_threshold="0.6"
+# homo_threshold="5.4"
 
-if [ -s ${FILEPREFIX}_QCd.bk ]
+if [ -s ${FILEPREFIX}_QCd_trimmed.bk ]
 then
-    rm ${FILEPREFIX}_QCd.bk
-    rm ${FILEPREFIX}_QCd.rds
+    rm ${FILEPREFIX}_QCd_trimmed.bk
+    rm ${FILEPREFIX}_QCd_trimmed.rds
 fi
 
 Rscript ${RESOURCEDIR}/Bigsnper_identify.r \
         ${PROCESSDIR}/CheckOutliers \
-        ${FILEPREFIX}_QCd.bed \
+        ${FILEPREFIX}_QCd_trimmed.bed \
         ${S_threshold} \
         ${homo_threshold}
 
-if [ -s ${FILEPREFIX}_QCd.keep ]
-then
-    ${PLINK}/plink  --bfile ${FILEPREFIX}_QCd \
-                    --keep ${FILEPREFIX}_QCd.keep \
-                    --make-bed \
-                    --out ${FILEPREFIX}_QCd_trimmed
-    cp ${FILEPREFIX}_QCd_trimmed.* ${RESULTSDIR}/02/.
-    PCAforPlinkData ${FILEPREFIX}_QCd_trimmed ${FILEPREFIX}_QCd_trimmed 3
-else
-    echo "Please detect the threshold from the Bigsnper_PCA.pdf"
-fi
+rm ${PROCESSDIR}/CheckOutliers/${FILEPREFIX}_QCd_trimmed*
+
+# if [ -s ${FILEPREFIX}_QCd_trimmed.keep ]
+# then
+#     ${PLINK}/plink  --bfile ${FILEPREFIX}_QCd_trimmed \
+#                     --keep ${FILEPREFIX}_QCd_trimmed.keep \
+#                     --make-bed \
+#                     --out ${FILEPREFIX}_QCd_trimmed_Bigsnper
+#     cp ${FILEPREFIX}_QCd_trimmed_Bigsnper* ${RESULTSDIR}/02/.
+#     PCAforPlinkData ${FILEPREFIX}_QCd_trimmed_Bigsnper  ${FILEPREFIX}_QCd_trimmed_Bigsnper 3
+# else
+#     echo "Please detect the threshold from the Bigsnper_PCA.pdf"
+# fi
