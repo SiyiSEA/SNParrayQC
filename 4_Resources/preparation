@@ -5,6 +5,8 @@ mkdir -p ${PROCESSDIR}
 mkdir -p ${METADIR}
 mkdir -p ${IMPUTEDIR}
 mkdir -p ${CNVDIR}
+mkdir -p ${RAWDATADIR}
+mkdir -p ${JOBSDIR}
 
 mkdir -p ${PROCESSDIR}/QCData
 mkdir -p ${PROCESSDIR}/CheckOutliers
@@ -42,8 +44,8 @@ logfile_04="${RESULTSDIR}/04/log04.txt"
 logfile_05a="${RESULTSDIR}/05/log05a.txt"
 logfile_05b="${RESULTSDIR}/05/log05b.txt"
 logfile_05c="${RESULTSDIR}/05/log05c.txt"
-logfile_06a="${RESULTSDIR}/06/log06a.txt"
-logfile_06b="${RESULTSDIR}/06/log06b.txt"
+logfile_06a="${RESULTSDIR}/06a/log06a.txt"
+logfile_06b="${RESULTSDIR}/06b/log06b.txt"
 logfile_07="${RESULTSDIR}/07/log07.txt"
 
 # liftover files (NCBI35/hg17) - (GRCh37/hg19)

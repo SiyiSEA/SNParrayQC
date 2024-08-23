@@ -7,9 +7,9 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/03CheckEthnicity.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/03CheckEthnicity.e
-#SBATCH --job-name=03CheckEthnicity
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/03CheckEthnicity.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/03CheckEthnicity.e
+#SBATCH --job-name=QC03CheckEthnicity
 
 ## This script determines sample ethnicity by comparing to 1000G super populations
 

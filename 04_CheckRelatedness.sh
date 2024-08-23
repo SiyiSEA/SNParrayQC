@@ -31,12 +31,12 @@ check_relatedness () {
    ## check for relatedness with other samples with KING
    "$KINGPATH"/king -b ${FILEPREFIX}_${2}_QCd.bed --kinship --prefix ${FILEPREFIX}_${2}_QCd_kingship
 
-   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r ${FILEPREFIX}_${2}_QCd_kingship.kin0 ${SCRIPTDIR}/3_Results/03
+   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r ${FILEPREFIX}_${2}_QCd_kingship.kin0 ${DATADIR}/3_Results/03
 
    ## check for relatedness with other samples with plink
    ${PLINK}/plink --bfile ${FILEPREFIX}_${2}_QCd --genome --mind 0.2 --out ${FILEPREFIX}_${2}_QCd_ibd
 
-   Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.r ${FILEPREFIX}_${2}_QCd_ibd.genome ${SCRIPTDIR}/3_Results/04 $2
+   Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.r ${FILEPREFIX}_${2}_QCd_ibd.genome ${DATADIR}/3_Results/04 $2
 
    rm ${FILEPREFIX}_${2}_QCd.*
 
@@ -44,11 +44,11 @@ check_relatedness () {
 }
 
 echo "Identify the population---------------------------------------------------------------------------------------------------"
-populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+populations=($(cut -f3 --delim="," ${DATADIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 
 for each in ${populations[@]}
 do
-   grep ${each} ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
+   grep ${each} ${DATADIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
    
    
    if [[ $(wc -l <${each}Samples.txt) -ge 1 ]]
@@ -57,7 +57,7 @@ do
       check_relatedness ${each}Samples.txt ${each}
    fi
    
-done  
+done 
 
 
 

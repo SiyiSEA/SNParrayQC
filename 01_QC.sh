@@ -164,7 +164,7 @@ num_sex_error=$(cat "SexCheck.sexcheck" | grep PROBLEM | wc -l)
 echo "There are " "$num_sex_error" " sample(s) needed to be removed due the sex error."
 
 # generate a list of sample fail on above checking and remove the failed samples
-Rscript ${RESOURCEDIR}/list_failqc.r
+Rscript ${RESOURCEDIR}/list_failqc.r ${PROCESSDIR}/QCData
 ${PLINK}/plink  --bfile ${FILEPREFIX}_update_5 \
                 --remove fail_mis_het_sex.txt \
                 --make-bed \

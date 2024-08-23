@@ -6,8 +6,8 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/ImputationFormatSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/ImputationFormatSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/ImputationFormatSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/ImputationFormatSanger.e
 #SBATCH --job-name=IFS
 
 
@@ -45,8 +45,6 @@ touch "$logfile_06a"
 exec > >(tee "$logfile_06a") 2>&1
 cd ${PROCESSDIR}/FormatImputation || exit
 
-# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh ALL ${KGG}/1000GP_Phase3_combined.legend
-# sh $homedir/SNPArray/preprocessing/4_formatForImputation.sh EUR ${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
 
 echo "checking the arguments--------------------------------------------------"
 population=$1
@@ -86,7 +84,7 @@ module load BCFtools
 ## subset samples
 if [ $population == "EUR" ]
   then
-  ${PLINK}/plink --bfile ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed \
+  ${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
                 --keep ${PROCESSDIR}/CheckRelatedness/${population}Samples.txt \
                 --maf 0.05 \
                 --make-bed \
@@ -101,6 +99,7 @@ else
   exit 1
 fi
 
+echo "Doing liftover -------------------------------------------------------"
 # convert the hg17.bim file into hg19.BED file
 awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
@@ -125,6 +124,7 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 \
                 --freq \
                 --out ${FILEPREFIX}_QCd_${population}_hg19_freq
 
+echo "Running the perl script -------------------------------------------------------"
 if [[ $population == "EUR" ]];
 then
     refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
@@ -157,8 +157,9 @@ ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated_temp \
 rm TEMP*
 rm *temp*
 
+echo "BCFtools -------------------------------------------------------"
 bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated_final.vcf -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
-bcftools index ${RESULTSDIR}/06a/{FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
+bcftools index ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
 
 
 # not works
