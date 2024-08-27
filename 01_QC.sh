@@ -156,12 +156,19 @@ ${PLINK}/plink  --bfile ${FILEPREFIX}_update_5 \
                 --out missingGenotypes
 
 # gender check - sex error
+# check may fail due to no polymorphic X chromosome loci in the data
 ${PLINK}/plink  --bfile ${RAWDATADIR}/${FILEPREFIX} \
                 --extract ${FILEPREFIX}_update_5.ld.prune.in \
                 --check-sex \
                 --out SexCheck
-num_sex_error=$(cat "SexCheck.sexcheck" | grep PROBLEM | wc -l)
-echo "There are " "$num_sex_error" " sample(s) needed to be removed due the sex error."
+if [ -s SexCheck.sexcheck ]
+then
+    num_sex_error=$(cat "SexCheck.sexcheck" | grep PROBLEM | wc -l)
+    echo "There are " "$num_sex_error" " sample(s) needed to be removed due the sex error."     
+else
+    echo "Due to no polymorphic X chromosome loci, skip the sex check."
+fi
+
 
 # generate a list of sample fail on above checking and remove the failed samples
 Rscript ${RESOURCEDIR}/list_failqc.r ${PROCESSDIR}/QCData

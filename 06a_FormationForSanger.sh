@@ -6,8 +6,8 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/ImputationFormatSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/ImputationFormatSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/ImputationFormatSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/ImputationFormatSanger.e
 #SBATCH --job-name=IFS
 
 
@@ -43,7 +43,7 @@
 source ./config
 touch "$logfile_06a"
 exec > >(tee "$logfile_06a") 2>&1
-cd ${PROCESSDIR}/FormatImputation || exit
+cd ${PROCESSDIR}/FormatImputation || exit 1
 
 
 echo "checking the arguments--------------------------------------------------"

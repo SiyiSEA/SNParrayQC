@@ -27,7 +27,6 @@ mkdir -p ${RESULTSDIR}/01
 mkdir -p ${RESULTSDIR}/02
 mkdir -p ${RESULTSDIR}/03
 mkdir -p ${RESULTSDIR}/04
-mkdir -p ${RESULTSDIR}/05
 mkdir -p ${RESULTSDIR}/05a
 mkdir -p ${RESULTSDIR}/05b
 mkdir -p ${RESULTSDIR}/05c
@@ -41,9 +40,9 @@ logfile_02="${RESULTSDIR}/02/log02.txt"
 logfile_03a="${RESULTSDIR}/03/log03a.txt"
 logfile_03b="${RESULTSDIR}/03/log03b.txt"
 logfile_04="${RESULTSDIR}/04/log04.txt"
-logfile_05a="${RESULTSDIR}/05/log05a.txt"
-logfile_05b="${RESULTSDIR}/05/log05b.txt"
-logfile_05c="${RESULTSDIR}/05/log05c.txt"
+logfile_05a="${RESULTSDIR}/05a/log05a.txt"
+logfile_05b="${RESULTSDIR}/05b/log05b.txt"
+logfile_05c="${RESULTSDIR}/05c/log05c.txt"
 logfile_06a="${RESULTSDIR}/06a/log06a.txt"
 logfile_06b="${RESULTSDIR}/06b/log06b.txt"
 logfile_07="${RESULTSDIR}/07/log07.txt"
