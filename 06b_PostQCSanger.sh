@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=100G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/06b_PostQCSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/06b_PostQCSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/06b_PostQCSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/06b_PostQCSanger.e
 #SBATCH --job-name=PostQCSanger
 
 
@@ -165,23 +165,19 @@ ${PLINK2} --bfile data_chr1_filtered \
 		  --make-bed \
 		  --out data_filtered_Sanger_temp
 
+# correct chrX into chr23
 awk '{print $2}' data_filtered_Sanger_temp.bim > oldidchrX.txt
 sed 's/X/23/g' oldidchrX.txt > newidchr23.txt
 paste oldidchrX.txt newidchr23.txt > updatechrid.txt
 
+# correct the FID and IID for fam file
+Rscript ${SCRIPTDIR}/4_Resources/correctFIDIID.r data_filtered_Sanger_temp.fam
+
 ${PLINK}/plink --bfile data_filtered_Sanger_temp \
 			   --make-bed \
+			   --update-ids updateFIDIID.txt \
 			   --update-name updatechrid.txt 2 1 \
 			   --out data_filtered_Sanger
-
-# The FIDs in the fam file are set to 0.
-cp data_filtered_Sanger.fam data_filtered_Sanger.fam.orig
-awk '{print $2,$2,$3,$4,$5,$6}' < data_filtered_Sanger.fam.orig > data_filtered_Sanger.fam
-
-# correct the FID and IID for fam file
-Rscript ${DATADIR}/4_Resources/correctFIDIID.r \
-	data_filtered_Sanger.fam \
-	${RAWDATADIR}/${FILEPREFIX}.fam
 
 # Combine info files into a single file
 cp data_chr1_filtered_Sanger.info data_filtered_Sanger.info
@@ -199,6 +195,8 @@ rm data_chr*temp*
 rm data_chr*_filtered_Sanger.info data_filtered_Sanger.fam.orig
 rm oldidchrX.txt newidchr23.txt updatechrid.txt
 rm data_chr*_filtered.info
+
+cp data_filtered_Sanger* ${RESULTSDIR}/06b/
 
 # check whether the number of variants is the same
 echo "The number of variants in bim file is" $(wc -l data_filtered_Sanger.bim)

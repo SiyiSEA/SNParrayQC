@@ -7,14 +7,14 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=250G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/AssembleData.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/AssembleData.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/07AssembleData.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/07AssembleData.e
 #SBATCH --job-name=AssembleData
 
 
 # this script is to assemble the imputed data
 ## EXECUTION
-# sh ./06_AssembleData.sh
+# sh ./07_AssembleData.sh
 
 ## REQUIRES the following variables in config file
 # ${IMPUTEDIR}, ${RAWDATADIR}/${FILEPREFIX}, ${SCRIPTDIR}
@@ -41,8 +41,7 @@ exec > >(tee "$logfile_07") 2>&1
 module load R/4.2.1-foss-2022a
 
 echo "Assemble QCd data----------------------------------------------"
-# cd ${PROCESSDIR}/QCData || exit
-# cp ${FILEPREFIX}_QCd_trimmed.b* ${FILEPREFIX}_QCd_trimmed.fam ${SCRIPTDIR}/3_Results/07/.
+cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed.* ${DATADIR}/3_Results/07/.
 
 
 echo "Assemble imputed data-------------------------------------------"
@@ -87,31 +86,33 @@ assemble_imputed_data () {
 	done
 
 	sed -i '1d' mergedosefile.txt
-	${PLINK2} --bfile data_chr1_dose_temp --pmerge-list mergedosefile.txt --make-bed --out data_dose_${panel}_${server}_temp
+	${PLINK2} --bfile data_chr1_dose_temp \
+			  --pmerge-list mergedosefile.txt \
+			  --make-bed \
+			  --out data_dose_${panel}_${server}_temp
 	
 	# make sure all the chx convert into chr23 across all the files
 	awk '{print $2}' data_dose_${panel}_${server}_temp.bim > oldidchrX.txt
 	sed 's/X/23/g' oldidchrX.txt > newidchr23.txt
 	paste oldidchrX.txt newidchr23.txt > updatechrid.txt
 	
-	${PLINK}/plink --bfile data_dose_${panel}_${server}_temp --make-bed --update-name updatechrid.txt 2 1 --out data_dose_${panel}_${server}
-
 	# correct the FID and IID for fam file
-	cp data_dose_${panel}_${server}.fam data_dose_${panel}_${server}.fam.orig
-	awk '{print $2,$2,$3,$4,$5,$6}' < data_dose_${panel}_${server}.fam.orig > data_dose_${panel}_${server}.fam
+	Rscript ${SCRIPTDIR}/4_Resources/correctFIDIID.r data_dose_${panel}_${server}_temp.fam
 
-	Rscript ${DATADIR}/4_Resources/correctFIDIID.r \
-		data_dose_${panel}_${server}.fam \
-		${RAWDATADIR}/${FILEPREFIX}.fam
+	${PLINK}/plink --bfile data_dose_${panel}_${server}_temp \
+				--make-bed \
+				--update-ids updateFIDIID.txt \
+				--update-name updatechrid.txt 2 1 \
+				--out data_dose_${panel}_${server}
 
 	# remove reducdecy data
-	rm data_dose_*temp* data_dose_${panel}_${server}.fam.orig mergedosefile.txt
-	rm oldidchrX.txt newidchr23.txt updatechrid.txt
-	cp data_dose_${panel}_${server}.b* data_dose_${panel}_${server}.fam  ${SCRIPTDIR}/3_Results/07/.
+	rm data_dose_*temp* mergedosefile.txt
+	rm oldidchrX.txt newidchr23.txt updatechrid.txt updateFIDIID.txt
+	cp data_dose_${panel}_${server}.*  ${DATADIR}/3_Results/07/.
 }
 
-#pass
-assemble_imputed_data Michigan HRC
+# pass
+# assemble_imputed_data Michigan HRC
 assemble_imputed_data Sanger HRC
 # assemble_imputed_data Michigan 1000G
 # assemble_imputed_data Sanger 1000G
@@ -127,46 +128,45 @@ assemble_imputed_postQC_data () {
 	cp data_filtered_${server}.bed  data_filtered_${panel}_${server}.bed
 	cp data_filtered_${server}.fam  data_filtered_${panel}_${server}.fam
 	cp data_filtered_${server}.info  data_filtered_${panel}_${server}.info
-	mv data_filtered_${panel}_${server}* ${SCRIPTDIR}/3_Results/07/.
+	mv data_filtered_${panel}_${server}* ${DATADIR}/3_Results/07/.
 }
 
 # pass
-assemble_imputed_postQC_data Michigan HRC
+# assemble_imputed_postQC_data Michigan HRC
 assemble_imputed_postQC_data Sanger HRC
 # assemble_imputed_postQC_data Michigan 1000G
 # assemble_imputed_postQC_data Sanger 1000G
 
 echo "Plotting filtered data------------------------------------------"
-
 plot_imputed_postQC_data () {
 	server_1=Michigan
 	server_2=Sanger
 	panel=$1
 
-	if [ -s ${SCRIPTDIR}/3_Results/07/data_filtered_${panel}_${server_1}.info ]
+	if [ -s ${DATADIR}/3_Results/07/data_filtered_${panel}_${server_1}.info ]
 	then
-		if [ -s ${SCRIPTDIR}/3_Results/07/data_filtered_${panel}_${server_2}.info ]
+		if [ -s ${DATADIR}/3_Results/07/data_filtered_${panel}_${server_2}.info ]
 		then
 			echo "Plotting the density plots for ${server_1}${panel} and ${server_2}${panel}"
-			Rscript ${DATADIR}/4_Resources/plot_imputation_quality.r \
-				"${SCRIPTDIR}/3_Results/07/" \
+			Rscript ${SCRIPTDIR}/4_Resources/plot_imputation_quality.r \
+				"${DATADIR}/3_Results/07/" \
 				"./data_filtered_${panel}_${server_1}.info" \
 				"./data_filtered_${panel}_${server_2}.info" \
 				${panel}
 		else
 			echo "Plotting the density plots for ${server_1}${panel}"
-			Rscript ${DATADIR}/4_Resources/plot_imputation_quality.r \
-				"${SCRIPTDIR}/3_Results/07/" \
+			Rscript ${SCRIPTDIR}/4_Resources/plot_imputation_quality.r \
+				"${DATADIR}/3_Results/07/" \
 				"./data_filtered_${panel}_${server_1}.info" \
 				"NULL" \
 				${panel}
 		fi
 	else
-		if [ -s ${SCRIPTDIR}/3_Results/07/data_filtered_${panel}_${server_2}.info ]
+		if [ -s ${DATADIR}/3_Results/07/data_filtered_${panel}_${server_2}.info ]
 		then
 			echo "Plotting the density plots for ${server_1}${panel} and ${server_2}${panel}"
-			Rscript ${DATADIR}/4_Resources/plot_imputation_quality.r \
-				"${SCRIPTDIR}/3_Results/07/" \
+			Rscript ${SCRIPTDIR}/4_Resources/plot_imputation_quality.r \
+				"${DATADIR}/3_Results/07/" \
 				"NULL" \
 				"./data_filtered_${panel}_${server_2}.info" \
 				${panel}
@@ -186,7 +186,7 @@ echo "PCA and count variants------------------------------------------"
 PCA_count_variant () {
 	data_path=$1
 	data_prefix=$2
-	PCApath=${SCRIPTDIR}/3_Results/PCAVariants
+	PCApath=${DATADIR}/3_Results/PCAVariants
 	
 	echo "Plot PCA and count the outliers for ${data_prefix}"
 	# PCA
@@ -194,7 +194,7 @@ PCA_count_variant () {
 	${PLINK}/plink --bfile ${data_path}/${data_prefix} --extract ${PCApath}/${data_prefix}.ld.prune.in --make-bed --out ${PCApath}/${data_prefix}.ld.prune
 
 	${GCTA}/gcta-1.94.1 --bfile ${PCApath}/${data_prefix}.ld.prune --make-grm-bin --autosome --out ${PCApath}/${data_prefix}.imqc
-	${GCTA}/gcta-1.94.1 --grm ${PCApath}/${data_prefix}.imqc --pca --out ${PCApath}/${data_prefix}.imqc.pca
+	${GCTA}/gcta-1.94.1 --grm ${PCApath}/${data_prefix}.imqc --pca --thread-num 4 --out ${PCApath}/${data_prefix}.imqc.pca
 
 	# plot PCs to identify outliers
 	Rscript ${SCRIPTDIR}/4_Resources/plotPCs.r ${PCApath}/${data_prefix}.imqc.pca.eigenvec 3
@@ -203,7 +203,7 @@ PCA_count_variant () {
 
 	for nPC in PC1 PC2 PC3 PC4 PC5 PC6
 	do
-		num_outlier=$(awk -v npc=${nPC} '$5==npc' ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt | wc -l)
+		num_outlier=$(awk -v npc=${nPC} '$4==npc' ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt | wc -l)
 		echo  ${nPC} ${num_outlier} ${PCApath}/${data_prefix}_OutliersFromPC_3SDfromMean.txt >> ${PCApath}/VariantsCount.txt
 	done
 
@@ -215,15 +215,14 @@ PCA_count_variant () {
 }
 
 
-cd ${SCRIPTDIR}/3_Results/PCAVariants || exit
+cd ${DATADIR}/3_Results/PCAVariants || exit
 rm -f VariantsCount.txt
 touch VariantsCount.txt
 
-# # takes an hour
-# PCA_count_variant ${RAWDATADIR} ${FILEPREFIX}
-# PCA_count_variant ${SCRIPTDIR}/3_Results/QCdData ${FILEPREFIX}_QCd
-# PCA_count_variant ${SCRIPTDIR}/3_Results/ImputedDataSangerHRC data_dose_HRC_Sanger
-PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_dose_HRC_Michigan
-PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_filtered_HRC_Michigan
-PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_dose_HRC_Sanger
-PCA_count_variant ${SCRIPTDIR}/3_Results/07 data_filtered_HRC_Sanger
+# takes a while
+PCA_count_variant ${DATADIR}/3_Results/07 data_dose_HRC_Sanger
+PCA_count_variant ${DATADIR}/3_Results/07 data_filtered_HRC_Sanger
+
+
+rm ${RESULTSDIR}/PCAVariants/*.eigenv*
+rm ${RESULTSDIR}/PCAVariants/*.impc.grm*
