@@ -3,18 +3,18 @@
 #SBATCH -p mrcq # submit to the serial queue
 #SBATCH --time=24:00:00 # Maximum wall time for the job.
 #SBATCH -A Research_Project-MRC190311 # research project to submit under. 
-#SBATCH --nodes=2 # specify number of nodes.
+#SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=250G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/07AssembleData.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/07AssembleData.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/07AssembleData.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/07AssembleData.e
 #SBATCH --job-name=AssembleData
 
 
 # this script is to assemble the imputed data
 ## EXECUTION
-# sh ./07_AssembleData.sh
+# bash ./07_AssembleData.sh
 
 ## REQUIRES the following variables in config file
 # ${IMPUTEDIR}, ${RAWDATADIR}/${FILEPREFIX}, ${SCRIPTDIR}

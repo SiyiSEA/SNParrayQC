@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 module load R/4.2.1-foss-2022a
 ## data paths
-export FILEPREFIX=scz_ab_eur_665_numericFIDIID ## filename of initial binary plink files that will be appended to all other output
-export DATADIR=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur ## data folder
+export FILEPREFIX=scz_ucl_eur_654_PoolID ## filename of initial binary plink files that will be appended to all other output
+export DATADIR=/lustre/home/sww208/QC/QCDataSets/UCL ## data folder
 export RAWDATADIR=${DATADIR}/1_RawData # where plink files should be found
 export PROCESSDIR=${DATADIR}/2_ProcessedData
 export METADIR=${DATADIR}/2_ProcessedData/MetaData
