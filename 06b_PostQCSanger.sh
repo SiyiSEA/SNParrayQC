@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=100G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/06b_PostQCSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/06b_PostQCSanger.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/06b_PostQCSanger.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/06b_PostQCSanger.e
 #SBATCH --job-name=PostQCSanger
 
 
@@ -192,7 +192,7 @@ done
 # clean up redundant files
 rm data_filtered_Sanger_temp*
 rm data_chr*temp* 
-rm data_chr*_filtered_Sanger.info data_filtered_Sanger.fam.orig
+rm data_chr*_filtered_Sanger.info 
 rm oldidchrX.txt newidchr23.txt updatechrid.txt
 rm data_chr*_filtered.info
 
