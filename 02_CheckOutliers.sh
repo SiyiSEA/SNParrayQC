@@ -37,6 +37,7 @@ Rscript ${RESOURCEDIR}/Bigsnper_identify.r \
         ${S_threshold} \
         ${homo_threshold}
 
+mv ./hist_SScore.png ./PCA_SScore.pdf ${RESULTSDIR}/02/.
 rm ${PROCESSDIR}/CheckOutliers/${FILEPREFIX}_QCd_trimmed*
 
 # if [ -s ${FILEPREFIX}_QCd_trimmed.keep ]
