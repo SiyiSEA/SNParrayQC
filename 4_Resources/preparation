@@ -49,6 +49,15 @@ logfile_07="${RESULTSDIR}/07/log07.txt"
 
 # liftover files (NCBI35/hg17) - (GRCh37/hg19)
 # https://hgdownload.soe.ucsc.edu/downloads.html
+
+
+if [ ! -s  ${RESOURCEDIR}/LiftOverTools/hg19ToHg38.over.chain.gz ]
+then
+    cd ${RESOURCEDIR}/LiftOverTools || exit
+    wget https://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+fi
+
+
 if [ ! -s  ${RESOURCEDIR}/LiftOverTools/hg17ToHg19.over.chain.gz ]
 then
     cd ${RESOURCEDIR}/LiftOverTools || exit
