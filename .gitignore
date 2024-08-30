@@ -1,0 +1,21 @@
+# Results folders #
+###################
+2_ProcessedData/CheckEthnicity/*
+2_ProcessedData/CheckOutliers/*
+2_ProcessedData/CheckRelatedness/*
+2_ProcessedData/FormatImputation/*
+2_ProcessedData/ImputedData/*
+2_ProcessedData/QCData/*
+3_Results/01/*
+3_Results/02/*
+3_Results/03/*
+3_Results/04/*
+3_Results/05/*
+3_Results/05a/*
+3_Results/05b/*
+3_Results/06a/*
+3_Results/06b/*
+3_Results/07/*
+3_Results/PCAVariants/
+5_JobReports/*
+4_Resources/LiftOverTools/*

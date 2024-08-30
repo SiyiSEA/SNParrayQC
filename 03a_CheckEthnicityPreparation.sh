@@ -7,11 +7,11 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/04aCEpreparation.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/04aCEpreparation.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/USBatch1/5_JobReports/04aCEpreparation.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/USBatch1/5_JobReports/04aCEpreparation.e
 #SBATCH --job-name=QC03a
 
-# This scritp is to generating 1000G based on hg19;
+# This scritp is to generating 1000G based on hg38;
 # if you do not have the 1000G in hg38, please can run this script;
 source ./config
 touch "$logfile_03a"
