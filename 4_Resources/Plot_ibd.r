@@ -19,7 +19,7 @@ if (dim(genome[genome$PI_HAT > 0.1875,])[1] == 0){
 } 
 
 #compute Mean(IBD)
-mean.ibd=0*genome$Z0 + 1*genome$Z1 + 2*genome$Z2
+mean.ibd=(0*genome$Z0 + 1*genome$Z1 + 2*genome$Z2)/2
 #compute Var(IBD)
 var.ibd=((0 -mean.ibd)^2)*genome$Z0 +
   ((1 -mean.ibd)^2)*genome$Z1 +
@@ -34,12 +34,13 @@ plot(mean.ibd, se.ibd, xlab="Mean IBD", ylab="SE IBD")
 dev.off()
 
 
-duplicate=genome[mean.ibd == 2,]
+duplicate=genome[mean.ibd > 0.2,]
 
 if (dim(duplicate)[1] == 0 ){
   message("There is no monozygotic tiwns or duplicates.")
 }else{
-  message(paste("There are ", dim(duplicate)[1], " individuals are monozygotic tiwns either duplicates."))
+  message(paste("There are ", dim(duplicate)[1], " individuals are monozygotic tiwns/duplicates/related."))
+  message(paste("Please remove the related individuals"))
   #Save the ID of one in each pair into a file fail_ibd_qc.txt for subsequent removal:
   fail_ibd_qc=data.frame(FID=duplicate$FID2, IID=duplicate$IID2)
   write.table(fail_ibd_qc, paste0(output, '/', population, "fail_ibd_qc.txt"), row.names=F, col.names=T, quote=F)
