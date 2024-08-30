@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 module load R/4.2.1-foss-2022a
 ## data paths
-export FILEPREFIX=scz_ucl_eur_654_PoolID ## filename of initial binary plink files that will be appended to all other output
-export DATADIR=/lustre/home/sww208/QC/QCDataSets/UCL ## data folder
+export FILEPREFIX=US_batch2_2480 ## filename of initial binary plink files that will be appended to all other output
+export DATADIR=/lustre/home/sww208/QC/QCDataSets/USBatch2 ## data folder
 export RAWDATADIR=${DATADIR}/1_RawData # where plink files should be found
 export PROCESSDIR=${DATADIR}/2_ProcessedData
 export METADIR=${DATADIR}/2_ProcessedData/MetaData
@@ -27,9 +27,8 @@ export GCTA=/lustre/projects/Research_Project-MRC190311/software/gcta-1.94.1-lin
 export LIFTOVER=/lustre/home/sww208/Software/liftOver
 
 ## data variables
-GenomeBuild="hg18"
-LiftChain="${RESOURCEDIR}/LiftOverTools/hg18ToHg38.over.chain.gz"
-LiftChainHg19="${RESOURCEDIR}/LiftOverTools/hg18ToHg19.over.chain.gz"
+GenomeBuild="hg19"
+LiftChain="${RESOURCEDIR}/LiftOverTools/hg19ToHg38.over.chain.gz"
 
 ## 1000G
 Ref1000G=${KGG}/1000G_gr38_maffilt

@@ -201,4 +201,3 @@ cp data_filtered_Sanger* ${RESULTSDIR}/06b/
 # check whether the number of variants is the same
 echo "The number of variants in bim file is" $(wc -l data_filtered_Sanger.bim)
 echo "The number of variants in info file is" $(wc -l data_filtered_Sanger.info)
-

@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/03CheckEthnicity.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/scz_ab_eur/5_JobReports/03CheckEthnicity.e
+#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/USBatch2/5_JobReports/03CheckEthnicity.o
+#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/USBatch2/5_JobReports/03CheckEthnicity.e
 #SBATCH --job-name=QC03CheckEthnicity
 
 ## This script determines sample ethnicity by comparing to 1000G super populations
@@ -39,12 +39,14 @@ cd ${PROCESSDIR}/CheckEthnicity || exit
 
 echo "Liftover the QCd data---------------------------------------------------------------------------"
 # liftover to GRCh38, since 1000G is based on the GRCh38
-# convert the hg17.bim file into hg19.BED file
+# convert the hg17.bim file into GRCh38.BED file
 awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 
 mapped_variant=$(wc -l Mapped.BED)
 total_variant=$(wc -l QCd.BED)
-echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
+echo "${mapped_variant} variants have been mapped."
+echo "${total_variant} variants in total."
+# echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
 
 # check if you have althernative chr
 awk '{print $1}' Mapped.BED | sort -u
