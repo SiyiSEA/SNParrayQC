@@ -6,11 +6,25 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05b_downloadMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05b_downloadMichigan.e
+#SBATCH --output=05bdownloadMichigan.o
+#SBATCH --error=05bdownloadMichigan.e
 #SBATCH --job-name=downloadMichigan
 
-source ./config
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
+
+mv 05bdownloadMichigan.o ${JOBSDIR}/05bdownloadMichigan.o
+mv 05bdownloadMichigan.e ${JOBSDIR}/05bdownloadMichigan.e
 
 cd ${IMPUTEDIR}/ImputationOutputMichiganHRC || exit
 

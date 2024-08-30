@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05c_PostQCMichigan.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/05c_PostQCMichigan.e
+#SBATCH --output=05cPostQCMichigan.o
+#SBATCH --error=05cPostQCMichigan.e
 #SBATCH --job-name=PostQCMichigan
 
 
@@ -32,13 +32,26 @@
 ## OUTPUT
 # data_filtered_Michigan.bim, data_filtered_Michigan.bed, data_filtered_Michigan.fam data_filtered_Michigan.info
 
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
 
-source ./config
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_05c"
 exec > >(tee "$logfile_05c") 2>&1
 module purge
 module load R/4.2.1-foss-2022a
 module load p7zip
+
+mv 05cPostQCMichigan.o ${JOBSDIR}/05cPostQCMichigan.o
+mv 05cPostQCMichigan.e ${JOBSDIR}/05cPostQCMichigan.e
 
 # function for unzip all the zip file
 un7zip () {
@@ -59,31 +72,27 @@ un7zip () {
 
 }
 
-echo 'checking the if the download files are complete-------------------------'
-md5sum -c results.md5
 
 echo "checking the arguments--------------------------------------------------"
-cd ${IMPUTEDIR} || exit
+panel=$2
 
-panel=$1
-
-if [ -z "$1" ];
+if [ -z "$2" ];
 then
         echo "No argument supplied"
         echo "Please input the argument either 1000G nor HRC"
 		exit
 else
-		mkdir -p ImputationOutputMichigan${panel} || exit
-		cd ImputationOutputMichigan${panel} || exit
+		cd ${IMPUTEDIR}/ImputationOutputMichigan${panel} || exit 1
+		md5sum -c results.md5
 fi
 
 # unzip the result
-if [ -z "$2" ];
+if [ -z "$3" ];
 then
         echo "No passcode supplied"
         echo "Skip the setp for unziping the chr.zip"
 else
-		passcode=$2
+		passcode=$3
 		echo "The passcode is" ${passcode}
         echo "chr.zip files are being unzipped"
 		un7zip ${passcode}

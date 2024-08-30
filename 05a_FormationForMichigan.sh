@@ -6,8 +6,8 @@
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/ImputationFormatMichigen.o
-#SBATCH --error=/lustre/home/sww208/QC/SNParrayQC/5_JobReports/ImputationFormatMichigen.e
+#SBATCH --output=05aImputationFormatMichigen.o
+#SBATCH --error=05aImputationFormatMichigen.e
 #SBATCH --job-name=IFM
 
 
@@ -38,16 +38,29 @@
 # only for EUR population, the reference panel is HRC;
 # anyother population should be 1000G panel.
 
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
 
-source ${DATADIR}/config
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_05a"
 exec > >(tee "$logfile_05a") 2>&1
 cd ${PROCESSDIR}/FormatImputation || exit
 
-echo "checking the arguments--------------------------------------------------"
-population=$1
+mv 05aImputationFormatMichigen.o ${JOBSDIR}/05aImputationFormatMichigen.o
+mv 05aImputationFormatMichigen.e ${JOBSDIR}/05aImputationFormatMichigen.e
 
-if [ -z "$1" ];
+echo "checking the arguments--------------------------------------------------"
+population=$2
+
+if [ -z "$2" ];
 then
         echo "No argument supplied"
         echo "Please input the population argument"
