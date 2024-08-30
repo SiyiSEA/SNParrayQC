@@ -13,7 +13,9 @@
 ## REQUIRES the following variables in config file
 ## INPUT raw_data bfile
 ## OUTPUT data_QCd PCA 
-source ./config
+
+
+source ${DATADIR}/config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 touch "$logfile_01"
 exec > >(tee "$logfile_01") 2>&1

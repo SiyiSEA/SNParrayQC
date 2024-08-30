@@ -32,7 +32,7 @@
 ## OUTPUT
 # data_filtered_Sanger.bim, data_filteredSanger_Sanger.fam, data_filtered_Sanger.bed, data_filtered_Sanger.info
 
-source ./config
+source ${DATADIR}/config
 touch "$logfile_06b"
 exec > >(tee "$logfile_06b") 2>&1
 module purge

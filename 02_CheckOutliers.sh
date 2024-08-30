@@ -13,7 +13,7 @@
 ## INPUT QCd bfile
 ## OUTPUT data_QCd_trimmed PCA
 
-source ./config
+source ${DATADIR}/config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 touch "$logfile_02"
 exec > >(tee "$logfile_02") 2>&1

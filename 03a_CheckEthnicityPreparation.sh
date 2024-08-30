@@ -13,7 +13,7 @@
 
 # This scritp is to generating 1000G based on hg38;
 # if you do not have the 1000G in hg38, please can run this script;
-source ./config
+source ${DATADIR}/config
 touch "$logfile_03a"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 exec > >(tee "$logfile_03a") 2>&1

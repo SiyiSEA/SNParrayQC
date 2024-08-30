@@ -17,7 +17,7 @@
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_king
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
 
-source ./config
+source ${DATADIR}/config
 touch "$logfile_04"
 exec > >(tee "$logfile_04") 2>&1
 cd ${PROCESSDIR}/CheckRelatedness || exit

@@ -35,7 +35,7 @@
 
 
 
-source ./config
+source ${DATADIR}/config
 touch "$logfile_07"
 exec > >(tee "$logfile_07") 2>&1
 module load R/4.2.1-foss-2022a

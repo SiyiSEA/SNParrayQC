@@ -40,7 +40,7 @@
 # anyother population should be 1000G panel.
 
 
-source ./config
+source ${DATADIR}/config
 touch "$logfile_06a"
 exec > >(tee "$logfile_06a") 2>&1
 cd ${PROCESSDIR}/FormatImputation || exit 1

@@ -31,7 +31,7 @@
 # merge1KG/${FILEPREFIX}_mergedw1000G # variants merged with 100 genomes and filtered to common, shared variants
 # merge1KG/${FILEPREFIX}_mergedw1000G.pca # pca for sample and 1000 genome combined
 
-source ./config
+source ${DATADIR}/config
 touch "$logfile_03b"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 exec > >(tee "$logfile_03b") 2>&1
