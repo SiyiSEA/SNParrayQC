@@ -17,7 +17,18 @@
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_king
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
 
-source ${DATADIR}/config
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_04"
 exec > >(tee "$logfile_04") 2>&1
 cd ${PROCESSDIR}/CheckRelatedness || exit
@@ -46,7 +57,7 @@ check_relatedness () {
 echo "Identify the population---------------------------------------------------------------------------------------------------"
 populations=($(cut -f3 --delim="," ${DATADIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 
-for each in ${populations[@]}
+for each in "${populations[@]}"
 do
    grep ${each} ${DATADIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
    

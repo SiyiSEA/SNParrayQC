@@ -7,8 +7,8 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=250G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/07AssembleData.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/07AssembleData.e
+#SBATCH --output=07AssembleData.o
+#SBATCH --error=07AssembleData.e
 #SBATCH --job-name=AssembleData
 
 
@@ -33,12 +33,23 @@
 # three of them are for QCdata, ImputedData and ImputedPostData
 # one is PCAVariants for sorting PCA plots, outliers variants and number of variants
 
+echo "checking the arguments for config file----------------------------"
+datapeth=$1
 
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
 
-source ${DATADIR}/config
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_07"
 exec > >(tee "$logfile_07") 2>&1
-module load R/4.2.1-foss-2022a
+
+mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
+mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e
 
 echo "Assemble QCd data----------------------------------------------"
 cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed.* ${DATADIR}/3_Results/07/.

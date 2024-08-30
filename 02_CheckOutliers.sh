@@ -13,13 +13,23 @@
 ## INPUT QCd bfile
 ## OUTPUT data_QCd_trimmed PCA
 
-source ${DATADIR}/config
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 touch "$logfile_02"
 exec > >(tee "$logfile_02") 2>&1
 
 cd ${PROCESSDIR}/CheckOutliers || exit
-
 cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed* ${PROCESSDIR}/CheckOutliers/.
 
 # S_threshold="0.6"

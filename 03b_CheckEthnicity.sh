@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/USBatch2/5_JobReports/03CheckEthnicity.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/USBatch2/5_JobReports/03CheckEthnicity.e
+#SBATCH --output=03CheckEthnicity.o
+#SBATCH --error=03CheckEthnicity.e
 #SBATCH --job-name=QC03CheckEthnicity
 
 ## This script determines sample ethnicity by comparing to 1000G super populations
@@ -31,11 +31,25 @@
 # merge1KG/${FILEPREFIX}_mergedw1000G # variants merged with 100 genomes and filtered to common, shared variants
 # merge1KG/${FILEPREFIX}_mergedw1000G.pca # pca for sample and 1000 genome combined
 
-source ${DATADIR}/config
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_03b"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 exec > >(tee "$logfile_03b") 2>&1
 cd ${PROCESSDIR}/CheckEthnicity || exit
+
+mv 03CheckEthnicity.o ${JOBSDIR}/03CheckEthnicity.o
+mv 03CheckEthnicity.e ${JOBSDIR}/03CheckEthnicity.e
 
 echo "Liftover the QCd data---------------------------------------------------------------------------"
 # liftover to GRCh38, since 1000G is based on the GRCh38

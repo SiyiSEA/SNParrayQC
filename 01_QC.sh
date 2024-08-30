@@ -14,8 +14,18 @@
 ## INPUT raw_data bfile
 ## OUTPUT data_QCd PCA 
 
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
 
-source ${DATADIR}/config
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		    exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 touch "$logfile_01"
 exec > >(tee "$logfile_01") 2>&1
