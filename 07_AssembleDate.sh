@@ -33,7 +33,8 @@
 # three of them are for QCdata, ImputedData and ImputedPostData
 # one is PCAVariants for sorting PCA plots, outliers variants and number of variants
 
-echo "checking the arguments for config file----------------------------"
+echo "checking the arguments for config file---------------------------------------------"
+
 datapeth=$1
 
 if [ -z "$1" ]
@@ -43,10 +44,14 @@ then
 		exit 1 # fail
 fi
 
+
 echo "running the PostQCSanger at $datapeth"
 source ${datapeth}/config
 touch "$logfile_07"
 exec > >(tee "$logfile_07") 2>&1
+
+mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
+mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e
 
 mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
 mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e
@@ -235,5 +240,5 @@ PCA_count_variant ${DATADIR}/3_Results/07 data_dose_HRC_Sanger
 PCA_count_variant ${DATADIR}/3_Results/07 data_filtered_HRC_Sanger
 
 
-rm ${RESULTSDIR}/PCAVariants/*.eigenv*
-rm ${RESULTSDIR}/PCAVariants/*.impc.grm*
+rm ${RESULTSDIR}/PCAVariants/${FILEPREFIX}*.eigenv*
+rm ${RESULTSDIR}/PCAVariants/${FILEPREFIX}*.impc.grm*

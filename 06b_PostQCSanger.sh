@@ -7,8 +7,9 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=100G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=06b_PostQCSanger.o
-#SBATCH --error=06b_PostQCSanger.e
+#SBATCH --output=06bPostQCSanger.o
+#SBATCH --error=06bPostQCSanger.e
+
 #SBATCH --job-name=PostQCSanger
 
 ## output files for use with Sanger Imputation Server
@@ -48,8 +49,10 @@ exec > >(tee "$logfile_06b") 2>&1
 module purge
 module load R/4.2.1-foss-2022a
 
-mv 06b_PostQCSanger.o ${JOBSDIR}/06b_PostQCSanger.o
-mv 06b_PostQCSanger.e ${JOBSDIR}/06b_PostQCSanger.e
+
+mv 06bPostQCSanger.o ${JOBSDIR}/06bPostQCSanger.o
+mv 06bPostQCSanger.e ${JOBSDIR}/06bPostQCSanger.e
+
 
 echo "checking the arguments for panel--------------------------------------------------"
 cd ${IMPUTEDIR} || exit
