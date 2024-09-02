@@ -7,10 +7,9 @@
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mem=100G
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/06b_PostQCSanger.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/UCL/5_JobReports/06b_PostQCSanger.e
+#SBATCH --output=06bPostQCSanger.o
+#SBATCH --error=06bPostQCSanger.e
 #SBATCH --job-name=PostQCSanger
-
 
 ## output files for use with Sanger Imputation Server
 # this script is for deal with the output file from Sanger Imputation Server, 
@@ -32,29 +31,41 @@
 ## OUTPUT
 # data_filtered_Sanger.bim, data_filteredSanger_Sanger.fam, data_filtered_Sanger.bed, data_filtered_Sanger.info
 
-source ${DATADIR}/config
+echo "checking the arguments for config file---------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_06b"
 exec > >(tee "$logfile_06b") 2>&1
 module purge
 module load R/4.2.1-foss-2022a
 
+mv 06bPostQCSanger.o ${JOBSDIR}/06bPostQCSanger.o
+mv 06bPostQCSanger.e ${JOBSDIR}/06bPostQCSanger.e
 
-echo "checking the arguments--------------------------------------------------"
+echo "checking the arguments for panel--------------------------------------------------"
 cd ${IMPUTEDIR} || exit
 
-panel=$1
+panel=$2
 
-if [ -z "$1" ];
+if [ -z "$2" ]
 then
         echo "No argument supplied"
-        echo "Please input the argument either 1000G nor HRC"
-		exit 1
-else
-		mkdir -p ImputationOutputSanger${panel} || exit
-		cd ImputationOutputSanger${panel} || exit
+        echo "Please input the second argument either 1000G nor HRC"
+		exit 1 # fail
+else 
+		cd ${IMPUTEDIR}/ImputationOutputSanger${panel} || exit 1
 fi
 
-echo "runing PostQC for Imputed data from Sanger----------------------------"
+echo "runing PostQC for Imputed data from Sanger-----------------------------------------"
 
 if [ -s X.vcf.gz ]
 then
@@ -150,7 +161,7 @@ done
 
 
 # Merge them into one dataset named data_filtered_Sanger
-echo "Merge--------------------------------------------------"
+echo "Merge--------------------------------------------------------------------------------"
 rm -f mergefile.txt
 touch mergefile.txt
 for i in $(seq 2 $chrNum)
