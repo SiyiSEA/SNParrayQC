@@ -48,8 +48,10 @@ exec > >(tee "$logfile_06b") 2>&1
 module purge
 module load R/4.2.1-foss-2022a
 
+
 mv 06bPostQCSanger.o ${JOBSDIR}/06bPostQCSanger.o
 mv 06bPostQCSanger.e ${JOBSDIR}/06bPostQCSanger.e
+
 
 echo "checking the arguments for panel--------------------------------------------------"
 cd ${IMPUTEDIR} || exit
