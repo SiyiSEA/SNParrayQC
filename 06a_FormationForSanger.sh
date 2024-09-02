@@ -91,8 +91,7 @@ fi
 echo "Start formatting the QC data for Sanger Imputation-----------------------"
 
 module purge
-module load VCFtools
-module load BCFtools
+module load R/4.2.1-foss-2022a
 
 ## use tool to check data prior to upload https://www.well.ox.ac.uk/~wrayner/tools/
 # follow the instruction of https://imputation.sanger.ac.uk/?instructions=1#prepareyourdata
@@ -145,12 +144,12 @@ echo "Running the perl script --------------------------------------------------
 if [[ $population == "EUR" ]];
 then
     refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
-    perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_${population}_hg19_freq.frq -r ${refFile} -h
+    perl ${RESOURCEDIR}/HRC-1000G-check-bim-NoReadKey.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_${population}_hg19_freq.frq -r ${refFile} -h
 
 elif [[ $population == "ALL" ]];
 then
     refFile=${KGG}/1000GP_Phase3_combined.legend
-    perl ${KINGPATH}/HRC-1000G-check-bim.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_${population}_hg19_freq.frq -r ${refFile} -g -p ALL
+    perl ${RESOURCEDIR}/HRC-1000G-check-bim-NoReadKey.pl -b ${FILEPREFIX}_QCd_${population}_hg19.bim -f ${FILEPREFIX}_QCd_${population}_hg19_freq.frq -r ${refFile} -g -p ALL
 else
     echo "Cannot process the population, Please check the input argument." 
     exit
@@ -160,7 +159,7 @@ fi
 # sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
 # sed -i '/--real-ref-alleles/d' Run-plink.sh
 # sh Run-plink.sh
-sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh
+sed -i 's=plink=${PLINK}/plink=g' Run-plink.sh || exit 1
 head -n 5 Run-plink.sh > Run-plink-Sanger.sh
 sh Run-plink-Sanger.sh
 ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated \
@@ -171,10 +170,13 @@ ${PLINK2} --bfile ${FILEPREFIX}_QCd_${population}_hg19-updated_temp \
           --real-ref-alleles \
           --recode vcf \
           --out ${FILEPREFIX}_QCd_${population}_hg19-updated_final
-rm TEMP*
+
 rm *temp*
 
 echo "BCFtools -------------------------------------------------------"
+module purge
+module load BCFtools
+
 bcftools sort ${FILEPREFIX}_QCd_${population}_hg19-updated_final.vcf -Oz -o ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
 bcftools index ${RESULTSDIR}/06a/${FILEPREFIX}_QCd_${population}_hg19_upload.vcf.gz
 
