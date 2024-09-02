@@ -15,7 +15,7 @@
 ## format files for use with Sanger Imputation Server https://imputation.sanger.ac.uk/
 
 ## EXECUTION
-# sh SNPArray/preprocessing/4_formatForimputation.sh <population> 
+# sh SNPArray/preprocessing/4_formatForimputation.sh <data path> <population> 
 # where 
 # <population > is 3 letter code for super population state ALL for no subsetting by population
 # <SNP ref file> is an input file of 
@@ -51,12 +51,15 @@ fi
 
 echo "running the PostQCSanger at $datapeth"
 source ${datapeth}/config
+source ${RESOURCEDIR}/PCAforPlinkData.sh
+
+mv 06aImputationFormatSanger.o ${JOBSDIR}/06aImputationFormatSanger.o
+mv 06aImputationFormatSanger.e ${JOBSDIR}/06aImputationFormatSanger.e
+
 touch "$logfile_06a"
 exec > >(tee "$logfile_06a") 2>&1
 cd ${PROCESSDIR}/FormatImputation || exit 1
 
-mv 06aImputationFormatSanger.o ${JOBSDIR}/06aImputationFormatSanger.o
-mv 06aImputationFormatSanger.e ${JOBSDIR}/06aImputationFormatSanger.e
 
 echo "checking the arguments--------------------------------------------------"
 population=$2
@@ -101,6 +104,8 @@ if [ $population == "EUR" ]
                 --maf 0.05 \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_${population}
+  PCAforPlinkData ${PROCESSDIR}/FormatImputation/InputSangerEUR/${FILEPREFIX}_QCd_${population} ${FILEPREFIX}_QCd_${population} 2
+
 elif [ $population == "ALL" ]
   then
     cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bim ${FILEPREFIX}_QCd_${population}.bim

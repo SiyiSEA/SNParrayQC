@@ -50,12 +50,14 @@ fi
 
 echo "running the PostQCSanger at $datapeth"
 source ${datapeth}/config
+
+mv 05aImputationFormatMichigen.o ${JOBSDIR}/05aImputationFormatMichigen.o
+mv 05aImputationFormatMichigen.e ${JOBSDIR}/05aImputationFormatMichigen.e
+
 touch "$logfile_05a"
 exec > >(tee "$logfile_05a") 2>&1
 cd ${PROCESSDIR}/FormatImputation || exit
 
-mv 05aImputationFormatMichigen.o ${JOBSDIR}/05aImputationFormatMichigen.o
-mv 05aImputationFormatMichigen.e ${JOBSDIR}/05aImputationFormatMichigen.e
 
 echo "checking the arguments--------------------------------------------------"
 population=$2

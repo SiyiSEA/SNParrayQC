@@ -25,13 +25,15 @@ fi
 
 echo "running the PostQCSanger at $datapeth"
 source ${datapeth}/config
+
+mv 04aCEpreparation.o ${JOBSDIR}/04aCEpreparation.o
+mv 04aCEpreparation.e ${JOBSDIR}/04aCEpreparation.e
+
 touch "$logfile_03a"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 exec > >(tee "$logfile_03a") 2>&1
 cd ${RESOURCEDIR}/1000G || exit
 
-mv 04aCEpreparation.o ${JOBSDIR}/04aCEpreparation.o
-mv 04aCEpreparation.e ${JOBSDIR}/04aCEpreparation.e
 
 #================================================================================================
 # The first 1000G comes from https://www.cog-genomics.org/plink/2.0/resources#1kg_phase3
