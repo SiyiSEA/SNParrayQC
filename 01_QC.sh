@@ -200,6 +200,7 @@ then
     ${PLINK}/plink  --bfile ${FILEPREFIX}_QCd \
                     --remove OutlierQC.txt \
                     --make-bed \
+                    --allow-no-sex \
                     --out ${FILEPREFIX}_QCd_trimmed
     cp ${FILEPREFIX}_QCd_trimmed.* ${RESULTSDIR}/01/.
     PCAforPlinkData ${FILEPREFIX}_QCd_trimmed ${FILEPREFIX}_QCd_trimmed 3

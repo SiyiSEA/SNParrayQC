@@ -55,8 +55,28 @@ cd ${PROCESSDIR}/CheckEthnicity || exit
 
 echo "Liftover the QCd data---------------------------------------------------------------------------"
 # liftover to GRCh38, since 1000G is based on the GRCh38
+
+if [ -s ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.fam ]
+then
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.fam ${PROCESSDIR}/CheckEthnicity/ToBeChecked.fam
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.bed ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bed
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.bim ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bim
+else
+    if [ -s ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ]
+    then
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ${PROCESSDIR}/CheckEthnicity/ToBeChecked.fam
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bed ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bed
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bim
+    else
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.fam ${PROCESSDIR}/CheckEthnicity/ToBeChecked.fam
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bed ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bed
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bim ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bim
+    fi
+fi
+
+
 # convert the hg17.bim file into GRCh38.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim > QCd.BED
+awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ToBeChecked.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 
 mapped_variant=$(wc -l Mapped.BED)
 total_variant=$(wc -l QCd.BED)
@@ -68,7 +88,7 @@ echo "${total_variant} variants in total."
 awk '{print $1}' Mapped.BED | sort -u
 awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
 
-${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
+${PLINK}/plink --bfile ToBeChecked \
                 --update-map NewPosition.txt \
                 --chr 1-23 \
                 --make-bed \
