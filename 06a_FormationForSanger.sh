@@ -99,7 +99,7 @@ module load BCFtools
 ## subset samples
 if [ $population == "EUR" ]
   then
-  ${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
+  ${PLINK}/plink --bfile ${PROCESSDIR}/CheckEthnicity/ToBeChecked \
                 --keep ${PROCESSDIR}/CheckRelatedness/${population}Samples.txt \
                 --maf 0.05 \
                 --make-bed \
@@ -108,9 +108,9 @@ if [ $population == "EUR" ]
 
 elif [ $population == "ALL" ]
   then
-    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bim ${FILEPREFIX}_QCd_${population}.bim
-  	cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.bed ${FILEPREFIX}_QCd_${population}.bed
-  	cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_trimmed.fam ${FILEPREFIX}_QCd_${population}.fam
+    cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bim ${FILEPREFIX}_QCd_${population}.bim
+  	cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bed ${FILEPREFIX}_QCd_${population}.bed
+  	cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.fam ${FILEPREFIX}_QCd_${population}.fam
 else
   echo "Please input either EUR or ALL as the first arg!"
   exit 1
