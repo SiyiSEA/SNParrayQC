@@ -9,7 +9,6 @@
 #SBATCH --mail-type=END # send email at job completion 
 #SBATCH --output=06bPostQCSanger.o
 #SBATCH --error=06bPostQCSanger.e
-
 #SBATCH --job-name=PostQCSanger
 
 ## output files for use with Sanger Imputation Server

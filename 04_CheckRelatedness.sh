@@ -14,8 +14,7 @@
 # ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd # binary plink files following prelim QC
 
 ## OUTPUT
-# ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_king
-# ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
+# ibd.png HisMeanKinshipCoefficients.pdf
 
 echo "checking the arguments for config file----------------------------------------------------------------------------"
 datapeth=$1
@@ -27,7 +26,7 @@ then
 		exit 1 # fail
 fi
 
-echo "running the PostQCSanger at $datapeth"
+echo "running the check relatedness at $datapeth"
 source ${datapeth}/config
 touch "$logfile_04"
 exec > >(tee "$logfile_04") 2>&1
@@ -37,19 +36,31 @@ check_relatedness () {
 
    echo "Check the relatedeness for each population--------------------------------------------------------------------------"
 
-   ${PLINK}/plink --bfile ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed --keep $1 --make-bed --allow-no-sex --out ${FILEPREFIX}_${2}_QCd
+   ${PLINK}/plink --bfile ${PROCESSDIR}/CheckEthnicity/ToBeChecked \
+                  --keep $1 \
+                  --make-bed \
+                  --allow-no-sex \
+                  --out ${FILEPREFIX}_${2}_QCd
 
    ## check for relatedness with other samples with KING
-   "$KINGPATH"/king -b ${FILEPREFIX}_${2}_QCd.bed --kinship --prefix ${FILEPREFIX}_${2}_QCd_kingship
+   "$KINGPATH"/king -b ${FILEPREFIX}_${2}_QCd.bed \
+                     --kinship \
+                     --prefix ${FILEPREFIX}_${2}_QCd_kingship
 
-   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r ${FILEPREFIX}_${2}_QCd_kingship.kin0 ${DATADIR}/3_Results/04 $2
+   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r \
+                     ${FILEPREFIX}_${2}_QCd_kingship.kin0 \
+                     ${DATADIR}/3_Results/04 \
+                     $2
 
    ## check for relatedness with other samples with plink
-   ${PLINK}/plink --bfile ${FILEPREFIX}_${2}_QCd --genome --mind 0.2 --out ${FILEPREFIX}_${2}_QCd_ibd
+   ${PLINK}/plink --bfile ${FILEPREFIX}_${2}_QCd \
+                  --genome \
+                  --mind 0.2 \
+                  --out ${FILEPREFIX}_${2}_QCd_ibd
 
    Rscript ${SCRIPTDIR}/4_Resources/Plot_ibd.r ${FILEPREFIX}_${2}_QCd_ibd.genome ${DATADIR}/3_Results/04 $2
 
-   rm ${FILEPREFIX}_${2}_QCd.*
+   rm ${FILEPREFIX}_${2}_QCd*
 
 
 }
