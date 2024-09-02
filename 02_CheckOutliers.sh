@@ -23,7 +23,7 @@ then
 		exit 1 # fail
 fi
 
-echo "running the PostQCSanger at $datapeth"
+echo "running the Check outliers at $datapeth"
 source ${datapeth}/config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 touch "$logfile_02"
@@ -45,9 +45,10 @@ Rscript ${RESOURCEDIR}/Bigsnper_identify.r \
         ${PROCESSDIR}/CheckOutliers \
         ${FILEPREFIX}_QCd_trimmed.bed \
         ${S_threshold} \
-        ${homo_threshold}
-
-mv ./hist_SScore.png ./PCA_SScore.pdf ${RESULTSDIR}/02/.
+        ${homo_threshold} \
+        ${FILEPREFIX}
+        
+mv ./*.png ./*.pdf ${RESULTSDIR}/02/.
 rm ${PROCESSDIR}/CheckOutliers/${FILEPREFIX}_QCd_trimmed*
 
 # if [ -s ${FILEPREFIX}_QCd_trimmed.keep ]

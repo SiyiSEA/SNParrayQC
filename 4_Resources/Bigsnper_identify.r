@@ -8,6 +8,7 @@ Sthreshold <- as.numeric(arguments[3])
 message("This is S threshold ", Sthreshold)
 homothreshold <- as.numeric(arguments[4])
 message("This is homothreshold ", homothreshold)
+dataname <- arguments[5]
 
 setwd(pathtodir)
 
@@ -30,7 +31,7 @@ prob <- bigutilsr::prob_dist(obj.svd$u, ncores = nb_cores())
 S <- prob$dist.self / sqrt(prob$dist.nn)
 
 # histgram for select the threshold
-png("hist_SScore.png")
+png(paste0("hist_SScore", dataname, ".png"))
 hist(S, breaks = "FD", xlab = "Statistic of outlierness", 
      ylab = "Frequency (sqrt-scale)",
      main = "Distribution of statistics (S)")
@@ -42,7 +43,7 @@ PCA_SScore = plot_grid(plotlist = lapply(1:10, function(k) {
     aes(color = S) +
     scale_colour_viridis_c()
 }), scale = 0.95)
-ggsave("PCA_SScore.pdf", plot=PCA_SScore, width = 16, height = 15)
+ggsave(paste0("PCA_SScore", dataname, ".pdf"), plot=PCA_SScore, width = 16, height = 15)
 
 
 if (is.na(Sthreshold)){
@@ -54,7 +55,8 @@ if (is.na(Sthreshold)){
       aes(color = S > as.numeric(Sthreshold)) +  # threshold based on histogram
       scale_colour_viridis_d()
   }), scale = 0.95)
-  ggsave("PCA_outliers_SScore.pdf", plot=PCA_outliers_SScore, width = 16, height = 15)
+  ggsave(paste0("PCA_outliers_SScore", dataname, ".pdf"), plot=PCA_outliers_SScore, width = 16, height = 15)
+
   # remove the outliers
   message("Removing outliers identified by the S score.")
   ind.norel = rows_along(obj.bed)
@@ -66,8 +68,8 @@ if (is.na(Sthreshold)){
 
   # plot(obj.svd2, type = "loadings", loadings = 1:20, coeff = 0.4)
   remove_outliers_SScore = plot(obj.svd2, type = "scores", scores = 1:20, coeff = 0.4)
-  ggsave("PCA_remove_outliers_SScore.pdf", plot=remove_outliers_SScore, width = 16, height = 15)
-  
+  ggsave(paste0("PCA_remove_outliers_SScore", dataname, ".pdf"), plot=remove_outliers_SScore, width = 16, height = 15)
+    
 }
 
 # dectect samples have a different ancestry from most of the samples in the data
@@ -75,7 +77,7 @@ PC <- predict(obj.svd2)
 ldist <- log(bigutilsr::dist_ogk(PC))
 
 # histgram for select the threshold
-png("hist_Mandist.png")
+png(paste0("hist_Mandist", dataname, ".png"))
 hist(ldist, breaks = "FD", xlab = "log Mahalanobis distance", main = "Distribution of (log squared) distances")
 dev.off()
 
@@ -90,7 +92,7 @@ PCA_Mandist = plot_grid(plotlist = lapply(1:9, function(k) {
     scale_color_viridis_c(trans = "log") +
     coord_equal()
 }), ncol = 3)
-ggsave("PCA_Mandist.pdf", plot=PCA_Mandist, width = 16, height = 15)
+ggsave(paste0("PCA_Mandist", dataname, ".pdf"), plot=PCA_Mandist, width = 16, height = 15)
 
 if (is.na(homothreshold)){
   message("Please detect the threshold based on hist and PCA plot with Mahalanobis distance in log scale!")
@@ -105,8 +107,8 @@ if (is.na(homothreshold)){
       scale_color_viridis_d(direction = -1) +
       coord_equal()
   }), ncol = 3)
-  ggsave("PCA_outliers_Mandist.pdf", plot=PCA_outliers_Mandist, width = 16, height = 15)
-  
+  ggsave(paste0("PCA_outliers_Mandist", dataname, ".pdf"), plot=PCA_outliers_Mandist, width = 16, height = 15)
+
   # remove the outliers
   message("Removing outliers identified by the homogeneous.")
   homo.row <- ind.row[ldist < homothreshold]
@@ -116,7 +118,8 @@ if (is.na(homothreshold)){
                           k = 20, ncores = nb_cores())
   # plot(obj.svd3, type = "loadings", loadings = 1:10, coeff = 0.4)
   PCA_remove_outliers_Mandist = plot(obj.svd3, type = "scores", scores = 1:10, coeff = 0.4)
-  ggsave("PCA_remove_outliers_Mandist.pdf", plot=PCA_remove_outliers_Mandist, width = 16, height = 15)
+  ggsave(paste0("PCA_remove_outliers_Mandist", dataname, ".pdf"), plot=PCA_remove_outliers_Mandist, width = 16, height = 15)
+  
 }
 
 # generate a list of sample ID for keeping
