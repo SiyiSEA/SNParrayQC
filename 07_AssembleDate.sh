@@ -34,6 +34,7 @@
 # one is PCAVariants for sorting PCA plots, outliers variants and number of variants
 
 echo "checking the arguments for config file---------------------------------------------"
+
 datapeth=$1
 
 if [ -z "$1" ]
@@ -43,10 +44,14 @@ then
 		exit 1 # fail
 fi
 
+
+echo "running the PostQCSanger at $datapeth"
 source ${datapeth}/config
 touch "$logfile_07"
 exec > >(tee "$logfile_07") 2>&1
-module load R/4.2.1-foss-2022a
+
+mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
+mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e
 
 mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
 mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e

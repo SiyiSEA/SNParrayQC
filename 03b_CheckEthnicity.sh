@@ -7,8 +7,8 @@
 #SBATCH --mem=100G
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
 #SBATCH --mail-type=END # send email at job completion 
-#SBATCH --output=/lustre/home/sww208/QC/QCDataSets/USBatch2/5_JobReports/03CheckEthnicity.o
-#SBATCH --error=/lustre/home/sww208/QC/QCDataSets/USBatch2/5_JobReports/03CheckEthnicity.e
+#SBATCH --output=03CheckEthnicity.o
+#SBATCH --error=03CheckEthnicity.e
 #SBATCH --job-name=QC03CheckEthnicity
 
 ## This script determines sample ethnicity by comparing to 1000G super populations
@@ -31,11 +31,27 @@
 # merge1KG/${FILEPREFIX}_mergedw1000G # variants merged with 100 genomes and filtered to common, shared variants
 # merge1KG/${FILEPREFIX}_mergedw1000G.pca # pca for sample and 1000 genome combined
 
-source ${DATADIR}/config
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
+
+mv ./03CheckEthnicity.o ${JOBSDIR}/03CheckEthnicity.o
+mv ./03CheckEthnicity.e ${JOBSDIR}/03CheckEthnicity.e
+
 touch "$logfile_03b"
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 exec > >(tee "$logfile_03b") 2>&1
 cd ${PROCESSDIR}/CheckEthnicity || exit
+
 
 echo "Liftover the QCd data---------------------------------------------------------------------------"
 # liftover to GRCh38, since 1000G is based on the GRCh38
@@ -54,7 +70,9 @@ awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
 
 ${PLINK}/plink --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
                 --update-map NewPosition.txt \
+                --chr 1-23 \
                 --make-bed \
+                --allow-no-sex \
                 --out ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38
 
 echo "Update the vairants ID for QCd data---------------------------------------------------------------------------"
@@ -62,6 +80,7 @@ echo "Update the vairants ID for QCd data---------------------------------------
 awk '{if ($1 != 0) print $2, "chr"$1":"$4}' ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38.bim > updateTo1KGFormat.txt
 ${PLINK}/plink --bfile ${RESULTSDIR}/03/${FILEPREFIX}_QCd_hg38 \
                 --update-name updateTo1KGFormat.txt \
+                --allow-no-sex \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_1kgIDs
 
@@ -70,6 +89,7 @@ echo "Frist merge with 1000G in hg38--------------------------------------------
 # need to test initially in case of error with triallelic variants
 ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_1kgIDs \
                 --bmerge ${Ref1000G} \
+                --allow-no-sex \
                 --make-bed \
                 --out mergedw1000G_gr38maf
 
@@ -78,6 +98,7 @@ echo "Second merge with 1000G in hg38-------------------------------------------
 ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_1kgIDs \
                 --exclude mergedw1000G_gr38maf-merge.missnp \
                 --make-bed \
+                --allow-no-sex \
                 --out ${FILEPREFIX}_1kgIDs_forMerge
 
 ${PLINK}/plink --bfile ${FILEPREFIX}_1kgIDs_forMerge \
@@ -85,6 +106,7 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_1kgIDs_forMerge \
                 --maf 0.01 \
                 --geno 0.1 \
                 --make-bed \
+                --allow-no-sex \
                 --out ${FILEPREFIX}_merged_1000G_forLD
 
 
@@ -98,6 +120,6 @@ Rscript ${SCRIPTDIR}/4_Resources/plotEthnicity.r ${RESULTSDIR}/03 ${RESULTSDIR}/
 
 # remove redundants
 rm ${FILEPREFIX}_1kgIDs_forMerge*
-populations=($(cut -f3 --delim="," ${SCRIPTDIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
-echo "The indivuduals from the data could belongs to" ${populations}
+populations=($(cut -f3 --delim="," ${DATADIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+echo "The individuals from the data could belongs to" "${populations[@]}"
 echo "If your data comes from more than one population, please check the relatedness for each population."

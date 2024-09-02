@@ -17,7 +17,18 @@
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_king
 # ${PROCESSDIR}/CheckRelatedness/${FILEPREFIX}_${2}_QCd_ibd
 
-source ${DATADIR}/config
+echo "checking the arguments for config file----------------------------------------------------------------------------"
+datapeth=$1
+
+if [ -z "$1" ]
+then
+        echo "No argument supplied"
+        echo "Please input the paht of the data folder as the first argument"
+		exit 1 # fail
+fi
+
+echo "running the PostQCSanger at $datapeth"
+source ${datapeth}/config
 touch "$logfile_04"
 exec > >(tee "$logfile_04") 2>&1
 cd ${PROCESSDIR}/CheckRelatedness || exit
@@ -26,12 +37,12 @@ check_relatedness () {
 
    echo "Check the relatedeness for each population--------------------------------------------------------------------------"
 
-   ${PLINK}/plink --bfile ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed --keep $1 --make-bed --out ${FILEPREFIX}_${2}_QCd
+   ${PLINK}/plink --bfile ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed --keep $1 --make-bed --allow-no-sex --out ${FILEPREFIX}_${2}_QCd
 
    ## check for relatedness with other samples with KING
    "$KINGPATH"/king -b ${FILEPREFIX}_${2}_QCd.bed --kinship --prefix ${FILEPREFIX}_${2}_QCd_kingship
 
-   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r ${FILEPREFIX}_${2}_QCd_kingship.kin0 ${DATADIR}/3_Results/04
+   Rscript ${SCRIPTDIR}/4_Resources/plotKinshipCoeff.r ${FILEPREFIX}_${2}_QCd_kingship.kin0 ${DATADIR}/3_Results/04 $2
 
    ## check for relatedness with other samples with plink
    ${PLINK}/plink --bfile ${FILEPREFIX}_${2}_QCd --genome --mind 0.2 --out ${FILEPREFIX}_${2}_QCd_ibd
@@ -46,7 +57,7 @@ check_relatedness () {
 echo "Identify the population---------------------------------------------------------------------------------------------------"
 populations=($(cut -f3 --delim="," ${DATADIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 
-for each in ${populations[@]}
+for each in "${populations[@]}"
 do
    grep ${each} ${DATADIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
    
@@ -58,7 +69,6 @@ do
    fi
    
 done 
-
 
 
 

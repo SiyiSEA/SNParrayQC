@@ -4,6 +4,7 @@ args<-commandArgs(TRUE)
 
 datFileName <- args[1]
 outFolder <- args[2]
+population <- args[3]
 
 if(dir.exists(datFileName)){
 	allFiles <- list.files(datFileName, pattern = "king.kin0")
@@ -12,10 +13,8 @@ if(dir.exists(datFileName)){
 		dat.tmp<-read.table(paste0(datFileName, file), header = TRUE, stringsAsFactors = FALSE)
 		dat<-rbind(dat, dat.tmp)
 	}
-	population<-"All"
-	
+
 } else {
-	population <- lapply(strsplit(gsub("_QCd_king.kin0", "", basename(datFileName)), "_"), tail , n = 1)[[1]]
 	dat<-read.table(datFileName, header = TRUE, stringsAsFactors = FALSE)
 	
 }
