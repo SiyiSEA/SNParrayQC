@@ -51,6 +51,7 @@ fi
 
 echo "running the PostQCSanger at $datapeth"
 source ${datapeth}/config
+source ${RESOURCEDIR}/PCAforPlinkData.sh
 
 mv 06aImputationFormatSanger.o ${JOBSDIR}/06aImputationFormatSanger.o
 mv 06aImputationFormatSanger.e ${JOBSDIR}/06aImputationFormatSanger.e
@@ -103,7 +104,7 @@ if [ $population == "EUR" ]
                 --maf 0.05 \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_${population}
-  PCAforPlinkData ${PROCESSDIR}/FormatImputation ${FILEPREFIX}_QCd_${population} 2
+  PCAforPlinkData ${PROCESSDIR}/FormatImputation/InputSangerEUR/${FILEPREFIX}_QCd_${population} ${FILEPREFIX}_QCd_${population} 2
 
 elif [ $population == "ALL" ]
   then
