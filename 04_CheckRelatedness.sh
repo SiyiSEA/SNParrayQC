@@ -26,6 +26,17 @@ then
 		exit 1 # fail
 fi
 
+echo "checking the arguments for perticular population--------------------------------------------------"
+
+if [ -z "$2" ];
+then
+        population=$2
+        echo "No argument supplied"
+        echo "Please input the population argument"
+        echo "Population options come from the end of the" $logfile_03b
+		  exit 1
+fi
+
 echo "running the check relatedness at $datapeth"
 source ${datapeth}/config
 touch "$logfile_04"
@@ -65,21 +76,34 @@ check_relatedness () {
 
 }
 
-echo "Identify the population---------------------------------------------------------------------------------------------------"
-populations=($(cut -f3 --delim="," ${DATADIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
 
-for each in "${populations[@]}"
-do
-   grep ${each} ${DATADIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
-   
-   
-   if [[ $(wc -l <${each}Samples.txt) -ge 1 ]]
-   then
-      echo "Checking the relatedness on ", ${each}, "population."
-      check_relatedness ${each}Samples.txt ${each}
-   fi
-   
-done 
+if [ -z "$2" ]
+then
+   grep $population ${DATADIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${population}Samples.txt
+   echo "Checking the relatedness on ", ${population}, "population."
+   check_relatedness  ${population}Samples.txt  ${population}
+
+else
+
+   populations=($(cut -f3 --delim="," ${DATADIR}/3_Results/03/PredictedPopulations.csv | tail -n +2 | sort | uniq))
+
+   for each in "${populations[@]}"
+   do
+      grep ${each} ${DATADIR}/3_Results/03/PredictedPopulations.csv | cut -f1-2 --delim="," --output-delimiter=" " > ${each}Samples.txt
+      
+      
+      if [[ $(wc -l <${each}Samples.txt) -ge 1 ]]
+      then
+         echo "Checking the relatedness on ", ${each}, "population."
+         check_relatedness ${each}Samples.txt ${each}
+      fi
+      
+   done 
+
+
+fi
+
+
 
 
 
