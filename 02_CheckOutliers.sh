@@ -39,21 +39,37 @@ touch "$logfile_02"
 exec > >(tee "$logfile_02") 2>&1
 
 cd ${PROCESSDIR}/CheckOutliers || exit
-cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed* ${PROCESSDIR}/CheckOutliers/.
-
-# S_threshold="1.5"
-# homo_threshold="5.4"
-
-if [ -s ${FILEPREFIX}_QCd_trimmed.bk ]
+if [ -s ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.fam ]
 then
-    rm ${FILEPREFIX}_QCd_trimmed.bk
-    rm ${FILEPREFIX}_QCd_trimmed.rds
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
+    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
+else
+    if [ -s ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ]
+    then
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
+    else
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
+        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
+    fi
+fi
+
+# S_threshold="0.6"
+# homo_threshold="5.3"
+
+if [ -s ToBeChecked.bk ]
+then
+    rm ToBeChecked.bk
+    rm ToBeChecked.rds
 fi
 
 echo "identifying the outliers based on the Bigsnper----------------------------------------------------------------"
 Rscript ${RESOURCEDIR}/Bigsnper_identify.r \
         ${PROCESSDIR}/CheckOutliers \
-        ${FILEPREFIX}_QCd_trimmed.bed \
+        ToBeChecked.bed \
         ${FILEPREFIX} \
         ${S_threshold} \
         ${homo_threshold} \
@@ -62,30 +78,29 @@ Rscript ${RESOURCEDIR}/Bigsnper_identify.r \
 mv ./*.png ./*.pdf ${RESULTSDIR}/02/.
 
 # Method - 1 for removing the outliers identified by the Bigsnper package
-if [ -s ${FILEPREFIX}_QCd_trimmed.keep ]
+if [ -s ToBeChecked.keep ]
 then
     echo "removing the outliers based on the Bigsnper----------------------------------------------------------------"
-    ${PLINK}/plink  --bfile ${FILEPREFIX}_QCd_trimmed \
-                    --keep ${FILEPREFIX}_QCd_trimmed.keep \
+    ${PLINK}/plink  --bfile ToBeChecked \
+                    --keep ToBeChecked.keep \
                     --make-bed \
                     --out ${FILEPREFIX}_QCd_Re_trimmed
 
     cp ${FILEPREFIX}_QCd_Re_trimmed.bim ${RESULTSDIR}/02/.
     cp ${FILEPREFIX}_QCd_Re_trimmed.bed ${RESULTSDIR}/02/.
-    cp ${FILEPREFIX}_QCd_Re_trimmedr.fam ${RESULTSDIR}/02/.
+    cp ${FILEPREFIX}_QCd_Re_trimmed.fam ${RESULTSDIR}/02/.
 
-    PCAforPlinkData ${FILEPREFIX}_QCd_trimmed_Bigsnper  ${FILEPREFIX}_QCd_trimmed_Bigsnper 3
+    PCAforPlinkData ${FILEPREFIX}_QCd_Re_trimmed  ${FILEPREFIX}_QCd_Re_trimmed 3
 else
     echo "Please detect the threshold from the Bigsnper_PCA.pdf is you select the Bigsnper to remove the outliers"
 fi
 
-# rm ${PROCESSDIR}/CheckOutliers/${FILEPREFIX}_QCd_trimmed*
 
 # Method - 2 for removing the outliers identified by the 3SD of PCA plot
 if [ -s ${PROCESSDIR}/QCData/OutlierQC.txt  ]
 then
     echo "removing the outliers based on the 3SD PCA-----------------------------------------------------------------"
-    ${PLINK}/plink  --bfile ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed \
+    ${PLINK}/plink  --bfile ToBeChecked \
                     --remove ${PROCESSDIR}/QCData/OutlierQC.txt \
                     --make-bed \
                     --allow-no-sex \
@@ -96,3 +111,5 @@ then
 else
     echo "There is no outliers can be identified by the 3SD."
 fi
+
+# rm ToBeChecked.*
