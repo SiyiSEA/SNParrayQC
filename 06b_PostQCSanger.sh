@@ -139,7 +139,7 @@ do
 			 --out data_chr${i}_filtered
 
 	# calculate the MAF
-	${PLINK}/plink -bfile data_chr${i}_filtered  \
+	${PLINK}/plink --bfile data_chr${i}_filtered  \
 				   --freq \
 				   --out data_chr${i}_filtered_freq
 
