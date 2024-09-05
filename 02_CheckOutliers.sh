@@ -39,25 +39,20 @@ touch "$logfile_02"
 exec > >(tee "$logfile_02") 2>&1
 
 cd ${PROCESSDIR}/CheckOutliers || exit
-if [ -s ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.fam ]
+
+if [ -s ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ]
 then
-    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
-    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
-    cp ${RESULTSDIR}/02/${FILEPREFIX}_QCd_Re_trimmed.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
 else
-    if [ -s ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ]
-    then
-        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
-        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
-        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd_trimmed.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
-    else
-        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
-        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
-        cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
-    fi
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.fam ${PROCESSDIR}/CheckOutliers/ToBeChecked.fam
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bed ${PROCESSDIR}/CheckOutliers/ToBeChecked.bed
+    cp ${RESULTSDIR}/01/${FILEPREFIX}_QCd.bim ${PROCESSDIR}/CheckOutliers/ToBeChecked.bim
 fi
 
-# S_threshold="0.6"
+
+# S_threshold="0.9"
 # homo_threshold="5.3"
 
 if [ -s ToBeChecked.bk ]
@@ -112,4 +107,4 @@ else
     echo "There is no outliers can be identified by the 3SD."
 fi
 
-# rm ToBeChecked.*
+rm ToBeChecked.*
