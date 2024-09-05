@@ -24,7 +24,7 @@ then
 		    exit 1 # fail
 fi
 
-echo "running the PostQCSanger at $datapeth"
+echo "running the 01_QC.sh at $datapeth"
 source ${datapeth}/config
 source ${RESOURCEDIR}/PCAforPlinkData.sh
 touch "$logfile_01"
@@ -32,7 +32,7 @@ exec > >(tee "$logfile_01") 2>&1
 cd ${PROCESSDIR}/QCData || exit
 
 echo "PCA the raw data---------------------------------------------------------------------------------------------------"
-PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
+#PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
 echo "Filter on Sample-level: Check the relatedness and duplications-----------------------------------------------------"
 # Method -1: identify duplication or related individuals or monozygotic twins -- apply
@@ -41,8 +41,8 @@ echo "Filter on Sample-level: Check the relatedness and duplications------------
     --related \
     --degree 2 \
     --prefix related
-
-if [ -s related.kin0 ]
+num_kin=$(wc -l related.kin0)
+if [[ -s related.kin0 ]] && [[ $num_kin -gt 1 ]]
 then
     awk 'NR>1 {print $1, $2}' related.kin0 > related.tmp
     num_dup=$(wc -l related.tmp)
