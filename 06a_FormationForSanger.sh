@@ -69,7 +69,7 @@ then
         echo "No argument supplied"
         echo "Please input the population argument"
         echo "Population options come from the end of the" $logfile_03b
-		exit
+		    exit 1
 else
         if [[ $population == "EUR" ]];
         then
@@ -84,7 +84,7 @@ else
 		        cd InputSangerALL || exit
         else
             echo "Cannot process the population" 
-            exit
+            exit 1
         fi
 fi
 
@@ -104,7 +104,7 @@ if [ $population == "EUR" ]
                 --maf 0.05 \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_${population}
-  PCAforPlinkData ${PROCESSDIR}/FormatImputation/InputSangerEUR/${FILEPREFIX}_QCd_${population} ${FILEPREFIX}_QCd_${population} 2
+  # PCAforPlinkData ${PROCESSDIR}/FormatImputation/InputSangerEUR/${FILEPREFIX}_QCd_${population} ${FILEPREFIX}_QCd_${population} 2
 
 elif [ $population == "ALL" ]
   then
@@ -117,24 +117,35 @@ else
 fi
 
 echo "Doing liftover -------------------------------------------------------"
-# convert the hg17.bim file into hg19.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
-${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
-mapped_variant=$(wc -l Mapped.BED)
-total_variant=$(wc -l QCd.BED)
-echo "${mapped_variant}"
-echo "${total_variant}"
-# echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
+# convert the .bim file into hg19.BED file
 
-# check if you have althernative chr
-awk '{print $1}' Mapped.BED | sort -u
-awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
+if [ $GenomeBuild == "hg19" ]
+then
+    echo "No need to do the liftover since the data built by hg19."
+    mv ${FILEPREFIX}_QCd_${population}.bim ${FILEPREFIX}_QCd_${population}_hg19.bim
+    mv ${FILEPREFIX}_QCd_${population}.bed ${FILEPREFIX}_QCd_${population}_hg19.bed
+    mv ${FILEPREFIX}_QCd_${population}.fam ${FILEPREFIX}_QCd_${population}_hg19.fam
 
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} \
-                --update-map NewPosition.txt \
-                --make-bed \
-                --out ${FILEPREFIX}_QCd_${population}_hg19
+else
+    awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
+    ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 
+    mapped_variant=$(wc -l Mapped.BED)
+    total_variant=$(wc -l QCd.BED)
+    echo "${mapped_variant}"
+    echo "${total_variant}"
+    # echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
 
+    # check if you have althernative chr
+    awk '{print $1}' Mapped.BED | sort -u
+    awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
+
+    ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} \
+                    --update-map NewPosition.txt \
+                    --make-bed \
+                    --chr 1-23 \
+                    --out ${FILEPREFIX}_QCd_${population}_hg19
+
+fi
 
 ## for HRC check tool need freq file
 ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 \
