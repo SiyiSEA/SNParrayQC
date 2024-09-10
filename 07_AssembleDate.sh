@@ -53,8 +53,6 @@ exec > >(tee "$logfile_07") 2>&1
 mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
 mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e
 
-mv 07AssembleData.o ${JOBSDIR}/07AssembleData.o
-mv 07AssembleData.e ${JOBSDIR}/07AssembleData.e
 
 echo "Assemble QCd data----------------------------------------------"
 cp ${PROCESSDIR}/QCData/${FILEPREFIX}_QCd_trimmed.* ${DATADIR}/3_Results/07/.
