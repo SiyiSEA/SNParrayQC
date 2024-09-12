@@ -75,6 +75,7 @@ else
 fi
 
 
+
 # convert the hg17.bim file into GRCh38.BED file
 awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ToBeChecked.bim > QCd.BED
 ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 

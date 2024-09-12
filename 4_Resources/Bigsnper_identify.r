@@ -127,8 +127,12 @@ if (is.na(homothreshold)){
 }
 
 # generate a list of sample ID for keeping the remining sample
-famfile = paste0(sub_bed(bedfile), ".fam")
-fam = read.table(famfile, header = F)
-length(homo.row)
-keeplist = fam[homo.row, 1:2]
-write.table(keeplist, file = paste0(sub_bed(bedfile), ".keep"), sep = " ", quote = F, row.names = F, col.names = F)
+if (is.na(Sthreshold) && is.na(homothreshold)){
+  message("No keep file will be created.")
+}else{
+  famfile = paste0(sub_bed(bedfile), ".fam")
+  fam = read.table(famfile, header = F)
+  length(homo.row)
+  keeplist = fam[homo.row, 1:2]
+  write.table(keeplist, file = paste0(sub_bed(bedfile), ".keep"), sep = " ", quote = F, row.names = F, col.names = F)
+}
