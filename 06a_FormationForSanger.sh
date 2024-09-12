@@ -127,7 +127,7 @@ then
 
 else
     awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
-    ${LIFTOVER} QCd.BED "${LiftChain}" Mapped.BED unMapped 
+    ${LIFTOVER} QCd.BED "${LiftChainHG19}" Mapped.BED unMapped 
     mapped_variant=$(wc -l Mapped.BED)
     total_variant=$(wc -l QCd.BED)
     echo "${mapped_variant}"

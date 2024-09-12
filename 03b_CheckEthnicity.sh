@@ -41,7 +41,7 @@ then
 		exit 1 # fail
 fi
 
-echo "running the PostQCSanger at $datapeth"
+echo "running the Check Ethnicity at $datapeth"
 source ${datapeth}/config
 
 mv ./03CheckEthnicity.o ${JOBSDIR}/03CheckEthnicity.o
