@@ -124,7 +124,7 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_1kgIDs \
 
 ${PLINK}/plink --bfile ${FILEPREFIX}_1kgIDs_forMerge \
                 --bmerge ${KGG}/1000G_gr38_maffilt \
-                --maf 0.01 \
+                --maf 0.1 \
                 --geno 0.1 \
                 --make-bed \
                 --allow-no-sex \
