@@ -73,7 +73,7 @@ if [ -s X.vcf.gz ]
 then
 	chrNum=23
 	# chr23 will fail on --make-pgen if there is no sex info
-	awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
+	awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex_chr.info
 else
 	chrNum=22
 	echo "Warnning: There is no SEX CHR!!!!!!!!!!!!!!!!!!!!!!!!"
@@ -89,9 +89,10 @@ do
 		# Human chrX pseudoautosomal variant(s) appear in chrX on 1000G, needs split-par or merge-par
 		${PLINK2} --vcf X.vcf.gz \
 				--make-pgen \
-				--update-sex sex.info \
+				--update-sex sex_chr.info \
 				--out data_chr${i}_dose_temp0 \
 				--split-par 'hg19'
+		rm sex_chr.info
 
 	elif [[ $i -eq 23 && $panel == "HRC" ]]; 
 	then
@@ -186,11 +187,20 @@ paste oldidchrX.txt newidchr23.txt > updatechrid.txt
 # correct the FID and IID for fam file
 Rscript ${SCRIPTDIR}/4_Resources/correctFIDIID.r data_filtered_Sanger_temp.fam
 
+# prepare the sex info from the orginal data
+awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex_temp.info
+sort sex_temp.info > sex_temp_sort.info
+awk '{print $1,$2}' data_filtered_Sanger.fam > sex_temp_new.info
+sort sex_temp_new.info > sex_temp_new_sort.info
+join -1 1 -2 1 sex_temp_new_sort.info sex_temp_sort.info -a1 > sex.info
+awk '{print $1,$2,$4}' sex.info > sex_update.info
+
 ${PLINK}/plink --bfile data_filtered_Sanger_temp \
 			   --make-bed \
 			   --update-ids updateFIDIID.txt \
 			   --update-name updatechrid.txt 2 1 \
-			   --out data_filtered_Sanger
+			   --update-sex sex_update.info \
+			   --out data_filtered_Sanger 
 
 # Combine info files into a single file
 cp data_chr1_filtered_Sanger.info data_filtered_Sanger.info
@@ -208,9 +218,15 @@ rm data_chr*temp*
 rm data_chr*_filtered_Sanger.info 
 rm oldidchrX.txt newidchr23.txt updatechrid.txt
 rm data_chr*_filtered.info
+rm sex_temp* sex.info
 
 cp data_filtered_Sanger* ${RESULTSDIR}/06b/
 
 # check whether the number of variants is the same
 echo "The number of variants in bim file is" $(wc -l data_filtered_Sanger.bim)
 echo "The number of variants in info file is" $(wc -l data_filtered_Sanger.info)
+
+${PLINK}/plink  --bfile data_filtered_Sanger_test_sex \
+				--make-bed \
+				--out data_filtered_Sanger_test_sex_b37 \
+				--split-x b37 no-fail
