@@ -193,21 +193,16 @@ ${PLINK}/plink --bfile data_filtered_Sanger_temp \
 			   --update-name updatechrid.txt 2 1 \
 			   --out data_filtered_Sanger_temp1
 
-# correct the sex info from the raw data
-awk '{print $1,$2}' data_filtered_Sanger.fam > correctFIDIID.info
-sort correctFIDIID.info > correctFIDIID.info.sort
+# correct the sex and phenotype info from the raw data
+awk '{print $1,$2}' data_filtered_Sanger_temp1.fam > correctFIDIID.info
 
-awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex_raw.info
-sort sex_raw.info > sex_raw.info.sort
-join -1 1 -2 1 correctFIDIID.info.sort sex_raw.info.sort -a1 > sex.info
-awk '{print $1,$2,$4}' sex.info > updatesex.info
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} \
+			   --make-bed \
+			   --keep correctFIDIID.info \
+			   --out data_filtered_Sanger_temp_sex_pheno
 
-
-# correct the phenotype info from the raw data
-awk '{print $1,$2,$6}' ${RAWDATADIR}/${FILEPREFIX}.fam > pheno_raw.info
-sort pheno_raw.info > pheno_raw.info.sort
-join -1 1 -2 1 correctFIDIID.info.sort pheno_raw.info.sort -a1 > pheno.info
-awk '{print $1,$2,$4}' pheno.info > updatepheno.info
+awk '{print $1,$2,$5}' data_filtered_Sanger_temp_sex_pheno.fam > updatesex.info
+awk '{print $1,$2,$6}' data_filtered_Sanger_temp_sex_pheno.fam > updatepheno.info
 
 ${PLINK}/plink --bfile data_filtered_Sanger_temp1 \
 			   --make-bed \
@@ -231,7 +226,6 @@ rm data_chr*temp*
 rm data_chr*_filtered_Sanger.info 
 rm oldidchrX.txt newidchr23.txt
 rm data_chr*_filtered.info
-rm sex* pheno*
 
 cp data_filtered_Sanger* ${RESULTSDIR}/06b/
 
