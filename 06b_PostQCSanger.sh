@@ -187,20 +187,33 @@ paste oldidchrX.txt newidchr23.txt > updatechrid.txt
 # correct the FID and IID for fam file
 Rscript ${SCRIPTDIR}/4_Resources/correctFIDIID.r data_filtered_Sanger_temp.fam
 
-# prepare the sex info from the orginal data
-awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex_temp.info
-sort sex_temp.info > sex_temp_sort.info
-awk '{print $1,$2}' data_filtered_Sanger.fam > sex_temp_new.info
-sort sex_temp_new.info > sex_temp_new_sort.info
-join -1 1 -2 1 sex_temp_new_sort.info sex_temp_sort.info -a1 > sex.info
-awk '{print $1,$2,$4}' sex.info > sex_update.info
-
 ${PLINK}/plink --bfile data_filtered_Sanger_temp \
 			   --make-bed \
 			   --update-ids updateFIDIID.txt \
 			   --update-name updatechrid.txt 2 1 \
-			   --update-sex sex_update.info \
-			   --out data_filtered_Sanger 
+			   --out data_filtered_Sanger_temp1
+
+# correct the sex info from the raw data
+awk '{print $1,$2}' data_filtered_Sanger.fam > correctFIDIID.info
+sort correctFIDIID.info > correctFIDIID.info.sort
+
+awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex_raw.info
+sort sex_raw.info > sex_raw.info.sort
+join -1 1 -2 1 correctFIDIID.info.sort sex_raw.info.sort -a1 > sex.info
+awk '{print $1,$2,$4}' sex.info > updatesex.info
+
+
+# correct the phenotype info from the raw data
+awk '{print $1,$2,$6}' ${RAWDATADIR}/${FILEPREFIX}.fam > pheno_raw.info
+sort pheno_raw.info > pheno_raw.info.sort
+join -1 1 -2 1 correctFIDIID.info.sort pheno_raw.info.sort -a1 > pheno.info
+awk '{print $1,$2,$4}' pheno.info > updatepheno.info
+
+${PLINK}/plink --bfile data_filtered_Sanger_temp1 \
+			   --make-bed \
+			   --update-sex updatesex.info \
+			   --pheno updatepheno.info \
+			   --out data_filtered_Sanger
 
 # Combine info files into a single file
 cp data_chr1_filtered_Sanger.info data_filtered_Sanger.info
@@ -216,9 +229,9 @@ done
 rm data_filtered_Sanger_temp*
 rm data_chr*temp* 
 rm data_chr*_filtered_Sanger.info 
-rm oldidchrX.txt newidchr23.txt updatechrid.txt
+rm oldidchrX.txt newidchr23.txt
 rm data_chr*_filtered.info
-rm sex_temp* sex.info
+rm sex* pheno*
 
 cp data_filtered_Sanger* ${RESULTSDIR}/06b/
 
