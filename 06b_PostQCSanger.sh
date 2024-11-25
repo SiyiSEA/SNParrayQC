@@ -73,7 +73,7 @@ if [ -s X.vcf.gz ]
 then
 	chrNum=23
 	# chr23 will fail on --make-pgen if there is no sex info
-	awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
+	awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex_chr.info
 else
 	chrNum=22
 	echo "Warnning: There is no SEX CHR!!!!!!!!!!!!!!!!!!!!!!!!"
@@ -89,9 +89,10 @@ do
 		# Human chrX pseudoautosomal variant(s) appear in chrX on 1000G, needs split-par or merge-par
 		${PLINK2} --vcf X.vcf.gz \
 				--make-pgen \
-				--update-sex sex.info \
+				--update-sex sex_chr.info \
 				--out data_chr${i}_dose_temp0 \
 				--split-par 'hg19'
+		rm sex_chr.info
 
 	elif [[ $i -eq 23 && $panel == "HRC" ]]; 
 	then
@@ -190,6 +191,23 @@ ${PLINK}/plink --bfile data_filtered_Sanger_temp \
 			   --make-bed \
 			   --update-ids updateFIDIID.txt \
 			   --update-name updatechrid.txt 2 1 \
+			   --out data_filtered_Sanger_temp1
+
+# correct the sex and phenotype info from the raw data
+awk '{print $1,$2}' data_filtered_Sanger_temp1.fam > correctFIDIID.info
+
+${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} \
+			   --make-bed \
+			   --keep correctFIDIID.info \
+			   --out data_filtered_Sanger_temp_sex_pheno
+
+awk '{print $1,$2,$5}' data_filtered_Sanger_temp_sex_pheno.fam > updatesex.info
+awk '{print $1,$2,$6}' data_filtered_Sanger_temp_sex_pheno.fam > updatepheno.info
+
+${PLINK}/plink --bfile data_filtered_Sanger_temp1 \
+			   --make-bed \
+			   --update-sex updatesex.info \
+			   --pheno updatepheno.info \
 			   --out data_filtered_Sanger
 
 # Combine info files into a single file
@@ -206,7 +224,7 @@ done
 rm data_filtered_Sanger_temp*
 rm data_chr*temp* 
 rm data_chr*_filtered_Sanger.info 
-rm oldidchrX.txt newidchr23.txt updatechrid.txt
+rm oldidchrX.txt newidchr23.txt
 rm data_chr*_filtered.info
 
 cp data_filtered_Sanger* ${RESULTSDIR}/06b/
