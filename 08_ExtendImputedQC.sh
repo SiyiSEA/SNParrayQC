@@ -31,17 +31,17 @@ exec > >(tee "$logfile_08") 2>&1
 
 # update the SNP ID to make sure the SNP ID of r2 file can be matched to the .bim file
 
-echo "SNP R2" > EXTEND.all.info
-
 cd ${DATADIR}/r2 || exit 1
 
-for i in $(seq 1 23)
+
+for i in $(seq 1 22)
 do
     echo "Combing the chr${i}.r2..."
-	awk '{print $3"_"$5"_"$4, $6}' OFS='\t' chr${i}.r2 >> EXTEND.all.temp.info
+	awk '{print $3"_"$4"_"$5, $6}' OFS='\t' chr${i}.r2 >> EXTEND.all.temp.info
 done
 
 sed 's/X/23/g' EXTEND.all.temp.info > EXTEND.all.info
+rm EXTEND.all.temp.info
 
 wc -l EXTEND.all.info
 uniq EXTEND.all.info | wc -l

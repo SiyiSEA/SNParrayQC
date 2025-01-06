@@ -4,6 +4,10 @@ print("Reading data")
 
 info = fread("EXTEND.all.info", header = F, data.table=F)
 
+print("Filter SNPs < 0.8")
+
+info = info[which(info$V2 > 0.8),]
+
 head(info)
 
 fre = fread("EXTEND_imputed_928_sex_updateID_freq.frq", header = T, data.table = F)
@@ -26,6 +30,9 @@ head(info_filter2)
 
 colnames(info_filter2) = c("SNP", "MAF", "R2")
 
+print("Are there duplicated vairants?")
+
+length(which(duplicated(info_filter2$SNP) == T))
 
 print("Saving info file as EXTEND.info and saving filtered variants IDs.")
 
