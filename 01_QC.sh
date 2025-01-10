@@ -32,7 +32,7 @@ exec > >(tee "$logfile_01") 2>&1
 cd ${PROCESSDIR}/QCData || exit
 
 echo "PCA the raw data---------------------------------------------------------------------------------------------------"
-# PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
+PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
 echo "Filter on Sample-level: Check the relatedness and duplications-----------------------------------------------------"
 # Method -1: identify duplication or related individuals or monozygotic twins -- apply
@@ -207,6 +207,6 @@ then
 else
     echo "There is no outliers can be identified by the 3SD"
 fi
-# ## clean up intermediate files but keep log files
+## clean up intermediate files but keep log files
 # Rscript ${RESOURCEDIR}/QCreport01.r
 rm ${FILEPREFIX}_update_*.*
