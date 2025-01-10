@@ -83,7 +83,7 @@ fi
 for i in $(seq 1 $chrNum)
 do
 	# convert the vcf.gz into pgen formats
-	if [[ $i -eq 23 && $panel == "1000G" ]]; 
+	if [[ $i -eq 23 ]]; 
 	then
 		# the imputed dataset by 1000G already contains the PAR1 and PAR2 region
 		# Human chrX pseudoautosomal variant(s) appear in chrX on 1000G, needs split-par or merge-par
@@ -91,15 +91,8 @@ do
 				--make-pgen \
 				--update-sex sex_chr.info \
 				--out data_chr${i}_dose_temp0 \
-				--split-par 'hg19'
-		rm sex_chr.info
-
-	elif [[ $i -eq 23 && $panel == "HRC" ]]; 
-	then
-		${PLINK2} --vcf X.vcf.gz \
-				--make-pgen \
-				--update-sex sex.info \
-				--out data_chr${i}_dose_temp0
+				--split-par 'hg19' \
+				--not-chr mt par1 par2
 		
 	else
 		${PLINK2} --vcf ${i}.vcf.gz \
@@ -211,7 +204,7 @@ ${PLINK}/plink --bfile data_filtered_Sanger_temp1 \
 			   --out data_filtered_Sanger
 
 # Combine info files into a single file
-cp data_chr1_filtered_Sanger.info data_filtered_Sanger.info
+cp data_chr1_filtered_Sanger.info data_filtered_Sanger.infodat	
 
 for i in $(seq 1 $chrNum)
 do
