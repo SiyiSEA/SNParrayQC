@@ -206,6 +206,10 @@ ${PLINK}/plink --bfile data_filtered_Sanger_temp1 \
 # Combine info files into a single file
 cp data_chr1_filtered_Sanger.info data_filtered_Sanger.infodat	
 
+if [ -f "data_filtered_Sanger.info" ] ; then
+    rm "data_filtered_Sanger.info"
+fi
+
 for i in $(seq 1 $chrNum)
 do
     if [ -f "data_chr${i}_filtered.bed" ]; then
