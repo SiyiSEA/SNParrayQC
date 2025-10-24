@@ -21,7 +21,7 @@ if [ -z "$1" ]
 then
         echo "No argument supplied"
         echo "Please input the paht of the data folder as the first argument"
-		    exit 1 # fail
+		exit 1 # fail
 fi
 
 echo "running the 01_QC.sh at $datapeth"
@@ -32,7 +32,7 @@ exec > >(tee "$logfile_01") 2>&1
 cd ${PROCESSDIR}/QCData || exit
 
 echo "PCA the raw data---------------------------------------------------------------------------------------------------"
-PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
+#PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
 echo "Filter on Sample-level: Check the relatedness and duplications-----------------------------------------------------"
 # Method -1: identify duplication or related individuals or monozygotic twins -- apply
@@ -133,7 +133,7 @@ ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --freq --out rawVariantFreq
 # filter sample and variant missingness, HWE, rare variants and exclude variants with no position
 awk '{if ($1 == 0) print $2}' ${FILEPREFIX}_update_3.bim > ${FILEPREFIX}_noLocPos.tmp
 ${PLINK}/plink --bfile ${FILEPREFIX}_update_3 \
-                --maf 0.1 \
+                --maf 0.01 \
                 --hwe 0.000001 \
                 --mind 0.1 \
                 --geno 0.1 \
