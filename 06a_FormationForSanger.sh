@@ -152,6 +152,9 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population}_hg19 \
                 --out ${FILEPREFIX}_QCd_${population}_hg19_freq
 
 echo "Running the perl script -------------------------------------------------------"
+module purge
+module load Perl/5.36.1-GCCcore-12.3.0
+module load Perl-bundle-CPAN/5.36.1-GCCcore-12.3.0
 if [[ $population == "EUR" ]];
 then
     refFile=${KGG}/../HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab
