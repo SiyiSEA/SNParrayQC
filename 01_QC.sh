@@ -21,7 +21,7 @@ if [ -z "$1" ]
 then
         echo "No argument supplied"
         echo "Please input the paht of the data folder as the first argument"
-		    exit 1 # fail
+		exit 1 # fail
 fi
 
 echo "running the 01_QC.sh at $datapeth"
@@ -32,7 +32,7 @@ exec > >(tee "$logfile_01") 2>&1
 cd ${PROCESSDIR}/QCData || exit
 
 echo "PCA the raw data---------------------------------------------------------------------------------------------------"
-PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
+#PCAforPlinkData ${RAWDATADIR}/${FILEPREFIX} ${FILEPREFIX} 2
 
 echo "Filter on Sample-level: Check the relatedness and duplications-----------------------------------------------------"
 # Method -1: identify duplication or related individuals or monozygotic twins -- apply
@@ -41,7 +41,7 @@ echo "Filter on Sample-level: Check the relatedness and duplications------------
     --related \
     --degree 2 \
     --prefix related
-num_kin=$(wc -l related.kin0)
+num_kin=$(cat related.kin0 | wc -l)
 if [[ -s related.kin0 ]] && [[ $num_kin -gt 1 ]]
 then
     awk 'NR>1 {print $1, $2}' related.kin0 > related.tmp
@@ -123,7 +123,7 @@ ${PLINK}/plink --bfile ${FILEPREFIX}_update_1 --exclude ${FILEPREFIX}_update_2.d
 
 echo "Filter on SNP-level: missing rate of variants----------------------------------------------------------------------"
 # Variants missing call rate QC
-${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out rawMissing
+# ${PLINK}/plink --bfile ${RAWDATADIR}/${FILEPREFIX} --missing --out rawMissing
 
 echo "Filter on SNP-level: MAF-------------------------------------------------------------------------------------------"
 # Variants Minor allele frequencies
@@ -135,8 +135,8 @@ awk '{if ($1 == 0) print $2}' ${FILEPREFIX}_update_3.bim > ${FILEPREFIX}_noLocPo
 ${PLINK}/plink --bfile ${FILEPREFIX}_update_3 \
                 --maf 0.01 \
                 --hwe 0.000001 \
-                --mind 0.02 \
-                --geno 0.05 \
+                --mind 0.1 \
+                --geno 0.1 \
                 --exclude ${FILEPREFIX}_noLocPos.tmp \
                 --make-bed \
                 --out ${FILEPREFIX}_update_4
@@ -207,6 +207,6 @@ then
 else
     echo "There is no outliers can be identified by the 3SD"
 fi
-# ## clean up intermediate files but keep log files
+## clean up intermediate files but keep log files
 # Rscript ${RESOURCEDIR}/QCreport01.r
 rm ${FILEPREFIX}_update_*.*

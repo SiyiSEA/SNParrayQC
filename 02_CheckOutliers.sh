@@ -52,8 +52,8 @@ else
 fi
 
 
-# S_threshold="0.9"
-# homo_threshold="5.3"
+S_threshold="0.9"
+homo_threshold="5.3"
 
 if [ -s ToBeChecked.bk ]
 then

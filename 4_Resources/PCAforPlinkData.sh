@@ -22,6 +22,7 @@ PCAforPlinkData () {
         --bfile ${RESULTSDIR}/PCAVariants/${prefix}.ld.prune \
         --make-grm-bin \
         --autosome \
+        --thread-num 4 \
         --out ${RESULTSDIR}/PCAVariants/${prefix}.imqc
 
     ${GCTA}/gcta-1.94.1 \

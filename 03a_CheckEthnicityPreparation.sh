@@ -23,7 +23,7 @@ then
 		exit 1 # fail
 fi
 
-echo "running the PostQCSanger at $datapeth"
+echo "Preparing the files for checking ethnicity at $datapeth"
 source ${datapeth}/config
 
 mv 04aCEpreparation.o ${JOBSDIR}/04aCEpreparation.o

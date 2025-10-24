@@ -103,13 +103,13 @@ if [ $population == "EUR" ]
                 --maf 0.05 \
                 --make-bed \
                 --out ${FILEPREFIX}_QCd_${population}
-  # PCAforPlinkData ${PROCESSDIR}/FormatImputation/InputSangerEUR/${FILEPREFIX}_QCd_${population} ${FILEPREFIX}_QCd_${population} 2
+  PCAforPlinkData ${PROCESSDIR}/FormatImputation/InputSangerEUR/${FILEPREFIX}_QCd_${population} ${FILEPREFIX}_QCd_${population} 2
 
 elif [ $population == "ALL" ]
   then
     cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bim ${FILEPREFIX}_QCd_${population}.bim
-  	cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bed ${FILEPREFIX}_QCd_${population}.bed
-  	cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.fam ${FILEPREFIX}_QCd_${population}.fam
+    cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.bed ${FILEPREFIX}_QCd_${population}.bed
+    cp ${PROCESSDIR}/CheckEthnicity/ToBeChecked.fam ${FILEPREFIX}_QCd_${population}.fam
 else
   echo "Please input either EUR or ALL as the first arg!"
   exit 1
