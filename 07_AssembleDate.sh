@@ -5,7 +5,7 @@
 #SBATCH -A Research_Project-MRC190311 # research project to submit under. 
 #SBATCH --nodes=1 # specify number of nodes.
 #SBATCH --ntasks-per-node=16 # specify number of processors per node
-#SBATCH --mem=250G
+#SBATCH --mem=50G
 #SBATCH --mail-type=END # send email at job completion 
 #SBATCH --output=07AssembleData.o
 #SBATCH --error=07AssembleData.e
@@ -127,7 +127,7 @@ assemble_imputed_data () {
 
 # pass
 # assemble_imputed_data Michigan HRC
-assemble_imputed_data Sanger HRC
+# assemble_imputed_data Sanger HRC
 # assemble_imputed_data Michigan 1000G
 # assemble_imputed_data Sanger 1000G
 
@@ -146,8 +146,8 @@ assemble_imputed_postQC_data () {
 }
 
 # pass
-# assemble_imputed_postQC_data Michigan HRC
-assemble_imputed_postQC_data Sanger HRC
+assemble_imputed_postQC_data Michigan HRC
+# assemble_imputed_postQC_data Sanger HRC
 # assemble_imputed_postQC_data Michigan 1000G
 # assemble_imputed_postQC_data Sanger 1000G
 

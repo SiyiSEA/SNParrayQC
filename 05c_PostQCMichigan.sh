@@ -161,8 +161,16 @@ do
 			  --out data_chr${i}_filtered
 
 	#Reformat pvar file to id maf r2 
-	awk -v x='#CHROM' '$0~x,EOF''{print $3,$7}' < data_chr${i}_filtered.pvar | perl -pe 's/;/ /g'|awk '{print $1,$3,$4}' |perl -pe 's/ID/ID MAF R2/g' |perl -pe 's/MAF=//g'| perl -pe 's/R2=//g' > data_chr${i}_filtered_temp4.info
-	sed 's/X/23/g' data_chr${i}_filtered_temp4.info > data_chr${i}_filtered.info
+	awk -v x='#CHROM' '$0~x,EOF''{print $3,$6}' < data_chr${i}_filtered.pvar > data_chr${i}_filtered.hrc.info
+	echo -e "ID\tMAF\tR2" > data_chr${i}_filtered.mafr2
+	awk 'NR>1 {
+		id=$1
+		match($0, /MAF=([0-9.]+)/, maf)
+		match($0, /R2=([0-9.]+)/, r2)
+		if (maf[1] != "" && r2[1] != "")
+			print id "\t" maf[1] "\t" r2[1]
+		}' data_chr${i}_filtered.hrc.info >> data_chr${i}_filtered.mafr2
+	sed 's/X/23/g' data_chr${i}_filtered.mafr2 > data_chr${i}_filtered.info
 	
 done
 
@@ -182,32 +190,58 @@ ${PLINK2} --bfile data_chr1_filtered \
 		  --make-bed \
 		  --out data_filtered_Michigan_temp
 
-awk '{print $2}' data_filtered_Michigan_temp.bim > oldidchrX.txt
-sed 's/X/23/g' oldidchrX.txt > newidchr23.txt
-paste oldidchrX.txt newidchr23.txt > updatechrid.txt
 
-# make sure the all the chrX convert to chr23
-${PLINK}/plink --bfile data_filtered_Michigan_temp \
-			  --make-bed \
-			  --update-name updatechrid.txt 2 1 \
-			  --out data_filtered_Michigan
+# Correct the ChrX if necessary
+echo "Correct the ChrX if necessary--------------------------------------------------"
+if [ $chrNum -eq 22 ];
+then
+	echo "Message: No need to convert chrX to chr23."
+	cp data_filtered_Michigan_temp.fam data_filtered_Michigan_tempid.fam
+	cp data_filtered_Michigan_temp.bed data_filtered_Michigan_tempid.bed
+	cp data_filtered_Michigan_temp.bim data_filtered_Michigan_tempid.bim
 
+else
+	# make sure the all the chrX convert to chr23
+	awk '{print $2}' data_filtered_Michigan_temp.bim > oldidchrX.txt
+	sed 's/X/23/g' oldidchrX.txt > newidchr23.txt
+	paste oldidchrX.txt newidchr23.txt > updatechrid.txt
+	${PLINK}/plink --bfile data_filtered_Michigan_temp \
+				--make-bed \
+				--update-name updatechrid.txt 2 1 \
+				--out data_filtered_Michigan_tempid
+fi
+
+# Correct the FID and IID
+echo "Correct the FID and IID--------------------------------------------------"
 # The FIDs in the fam file are set to 0.
-cp data_filtered_Michigan.fam data_filtered_Michigan.fam.orig
-awk '{print $2,$2,$3,$4,$5,$6}' < data_filtered_Michigan.fam.orig > data_filtered_Michigan.fam
+# cp data_filtered_Michigan_tempid data_filtered_Michigan.fam.orig
+# awk '{print $2,$2,$3,$4,$5,$6}' < data_filtered_Michigan.fam.orig > data_filtered_Michigan.fam
 
 # correct the FID and IID for fam file
-Rscript ${DATADIR}/4_Resources/correctFIDIID.r \
-	data_filtered_Michigan.fam \
-	${RAWDATADIR}/${FILEPREFIX}.fam
+Rscript ${SCRIPTDIR}/4_Resources/correctFIDIID.r data_filtered_Michigan_tempid.fam
+
+${PLINK}/plink  --bfile data_filtered_Michigan_tempid \
+	--update-ids updateFIDIID.txt \
+	--make-bed \
+	--out data_filtered_Michigan_ids
+
+# Correct the Sex information for PLINK files
+echo "Correct the Sex --------------------------------------------------"
+
+awk '{print $1,$2,$5}' ${RAWDATADIR}/${FILEPREFIX}.fam > sex.info
+${PLINK}/plink  --bfile data_filtered_Michigan_ids \
+	--update-sex sex.info \
+	--make-bed \
+	--out data_filtered_Michigan
 
 # Combine info files into a single file
+echo "Combine info files into a single file--------------------------------------------------"
 cp data_chr1_filtered.info data_filtered_Michigan.info
 
-for i in $(seq 1 $chrNum)
+for i in $(seq 2 $chrNum)
 do
 	if [ -s "data_chr${i}_filtered.bed" ]; then
-		awk ' NR>1 {print $0}' < data_chr${i}_filtered.info | cat >> data_filtered_Michigan.info
+		awk ' NR>1 {print $0}' data_chr${i}_filtered.info | cat >> data_filtered_Michigan.info
 	fi
 done
 
@@ -215,8 +249,8 @@ done
 rm data_chr*_filtered_temp* 
 # rm data_chr*_filtered.p*
 rm data_filtered_Michigan.fam.orig
-rm data_filtered_Michigan_temp* oldidchrX.txt newidchr23.txt updatechrid.txt
-rm data_chr*_filtered.info
+rm data_filtered_Michigan_temp* 
+# rm data_chr*_filtered.info
 
 # check whether the number of variants is the same
 echo "The number of variants in bim file is" $(wc -l data_filtered_Michigan.bim)

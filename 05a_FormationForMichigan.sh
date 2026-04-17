@@ -112,21 +112,36 @@ else
   exit 1
 fi
 
-# convert the hg17.bim file into hg19.BED file
-awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
-${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
-mapped_variant=$(wc -l Mapped.BED)
-total_variant=$(wc -l QCd.BED)
-echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
 
-# check if you have althernative chr
-awk '{print $1}' Mapped.BED | sort -u
-awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
+if [ $GenomeBuild == "hg19" ]
+then
+    echo "The data is already in hg19 build."
+    mv ${FILEPREFIX}_QCd_${population}.bim ${FILEPREFIX}_QCd_${population}_hg19.bim
+  	mv ${FILEPREFIX}_QCd_${population}.bed  ${FILEPREFIX}_QCd_${population}_hg19.bed
+  	mv ${FILEPREFIX}_QCd_${population}.fam  ${FILEPREFIX}_QCd_${population}_hg19.fam
+elif [ $GenomeBuild == "hg17" ]
+then
+    echo "The data is in hg17 build, need to liftover to hg19."
+    # convert the hg17.bim file into hg19.BED file
+    awk '{print "chr"$1, "\t", $4-1, "\t", $4, "\t", $2}' ${FILEPREFIX}_QCd_${population}.bim > QCd.BED
+    ${LIFTOVER} QCd.BED "${LiftChainHg19}" Mapped.BED unMapped 
+    mapped_variant=$(wc -l Mapped.BED)
+    total_variant=$(wc -l QCd.BED)
+    echo $(( $mapped_variant*100/$total_variant )) "% of variants have been liftovered successfully!"
 
-${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} \
-                --update-map NewPosition.txt \
-                --make-bed \
-                --out ${FILEPREFIX}_QCd_${population}_hg19
+    # check if you have althernative chr
+    awk '{print $1}' Mapped.BED | sort -u
+    awk '{OFS="\t"; print $4, $3}' Mapped.BED > NewPosition.txt
+
+    ${PLINK}/plink --bfile ${FILEPREFIX}_QCd_${population} \
+                    --update-map NewPosition.txt \
+                    --make-bed \
+                    --out ${FILEPREFIX}_QCd_${population}_hg19
+else
+    echo "Please check the GenomeBuild variable in config file."
+    exit 1
+fi
+
 
 
 ## for HRC check tool need freq file
